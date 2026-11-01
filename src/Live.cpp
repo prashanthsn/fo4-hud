@@ -701,6 +701,13 @@ Json ReadLoot(const std::function<std::string(const char*)>& keyFor, std::string
 #if defined(PHOSPHOR_AE)
     AE_GATE("bQuickLoot", nullptr);
 #endif
+    // NG: reading the quick-container state faulted inside the engine (Fallout4.exe+0x289905) while its lock was held,
+    // and a fault caught after that leaves the lock taken forever, which froze the game. Off on NG until the layout is known.
+    if (REL::Module::IsNG()) {
+        static bool logged = false;
+        if (!logged) { logged = true; spdlog::info("Quick loot panel is unavailable on NG"); }
+        return nullptr;
+    }
     auto* player = RE::PlayerCharacter::GetSingleton();
     auto* favorites = RE::FavoritesManager::GetSingleton();
 #if defined(PHOSPHOR_AE)

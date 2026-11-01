@@ -32,7 +32,13 @@ bool sinkRegistered = false;
 
 RE::Projectile* AsMine(RE::TESObjectREFR* ref) {
     if (!ref) return nullptr;
-    auto* projectile = RE::fallout_cast<RE::Projectile*>(ref);
+    // Not RE::fallout_cast (its RTDynamicCast ID is wrong on NG): projectile references are recognised by form type.
+    switch (ref->GetFormType()) {
+    case RE::ENUM_FORM_ID::kPMIS: case RE::ENUM_FORM_ID::kPGRE: case RE::ENUM_FORM_ID::kPBEA:
+    case RE::ENUM_FORM_ID::kPFLA: case RE::ENUM_FORM_ID::kPCON: case RE::ENUM_FORM_ID::kPBAR: break;
+    default: return nullptr;
+    }
+    auto* projectile = static_cast<RE::Projectile*>(ref);
     return projectile && projectile->IsMine() ? projectile : nullptr;
 }
 
@@ -168,6 +174,13 @@ Json Read(std::vector<std::string>* exploded) {
 #if defined(PHOSPHOR_AE)
     AE_GATE("bMines", Json::array());
 #endif
+    // NG: scanning cell references faulted inside the engine (Fallout4.exe+0x2CABFF0) with the cell lock held, which a
+    // caught fault never releases (game freeze). Mine warnings are off on NG until that call is understood.
+    if (REL::Module::IsNG()) {
+        static bool logged = false;
+        if (!logged) { logged = true; spdlog::info("Mine warnings are unavailable on NG"); }
+        return Json::array();
+    }
     DrainAttachEvents();
     Json out = Json::array();
     auto* player = RE::PlayerCharacter::GetSingleton();

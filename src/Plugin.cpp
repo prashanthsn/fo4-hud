@@ -1253,7 +1253,7 @@ extern "C" __declspec(dllexport) bool F4SEAPI F4SEPlugin_Load(const F4SE::LoadIn
 #if defined(PHOSPHOR_AE)
         spdlog::info("Phosphor HUD 0.9.24-ae1 EXPERIMENTAL built for AE 1.11.240; in-game behavior UNVERIFIED");
 #else
-        spdlog::info("Phosphor HUD 0.9.24 [NG test build 5] loaded for {} {}; live HUD",
+        spdlog::info("Phosphor HUD 0.9.24 [NG test build 6] loaded for {} {}; live HUD",
                      f4se->RuntimeVersion() == F4SE::RUNTIME_1_10_984 ? "NG" : "OG", f4se->RuntimeVersion().string());
 #endif
         return true;
