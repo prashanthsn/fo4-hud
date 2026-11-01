@@ -62,30 +62,46 @@ struct Equipped {
     RE::TESObjectWEAP* thrown = nullptr;  // grenade or mine in the throwable slot
 };
 
+static bool g_eqTrace = true;
+#define PH_TRE(n) do { if (g_eqTrace) spdlog::info("ReadEquipped: {}", n); } while (0)
 Equipped ReadEquipped(RE::Actor& actor) {
     Equipped out;
+    PH_TRE("currentProcess");
     auto* process = actor.currentProcess;
+    PH_TRE("middleHigh");
     auto* middleHigh = process ? process->middleHigh : nullptr;
     if (!middleHigh) return out;
+    PH_TRE("lock");
     RE::BSAutoLock lock{middleHigh->equippedItemsLock};
+    PH_TRE("locked");
     for (auto& equipped : middleHigh->equippedItems) {
+        PH_TRE("item");
+        PH_TRE("As<TESObjectWEAP>");
         auto* weapon = equipped.item.object ? equipped.item.object->As<RE::TESObjectWEAP>() : nullptr;
         if (!weapon) continue;
+        PH_TRE("IsThrown");
         if (IsThrown(*weapon)) {
             if (!out.thrown) out.thrown = weapon;
             continue;
         }
         if (equipped.equipIndex.index != 0 || out.weapon) continue;
+        PH_TRE("weapon found");
         out.weapon = weapon;
         out.instance = static_cast<RE::TESObjectWEAP::InstanceData*>(equipped.item.instanceData.get());
+        PH_TRE("instanceData");
         const RE::TESObjectWEAP::InstanceData& data = out.instance ? *out.instance : weapon->weaponData;
-        auto* state = equipped.data ? RE::fallout_cast<RE::EquippedWeaponData*>(equipped.data.get()) : nullptr;
+        // Not RE::fallout_cast: it calls the engine's RTDynamicCast through a single Address Library ID that resolves to
+        // data on NG (crash on the first read, Fallout4.exe+0x2CABFF0). Equipped guns always carry EquippedWeaponData.
+        PH_TRE("state cast");
+        auto* state = (equipped.data && IsGun(*weapon)) ? static_cast<RE::EquippedWeaponData*>(equipped.data.get()) : nullptr;
+        PH_TRE("ammo");
         out.ammo = state && state->ammo ? state->ammo : data.ammo;
         if (out.ammo && IsGun(*weapon)) {
             out.clipMax = data.ammoCapacity;
             out.clip = state ? static_cast<int>(state->ammoCount) : 0;
         }
     }
+    if (g_eqTrace) { g_eqTrace = false; spdlog::info("ReadEquipped: completed"); }
     return out;
 }
 
@@ -96,26 +112,35 @@ struct InventoryRead {
     std::vector<std::string> legendary;  // legendary effects on the equipped weapon (LEO slots included)
 };
 
+static bool g_invTrace = true;
+#define PH_TRI(n) do { if (g_invTrace) spdlog::info("ReadInventory: {}", n); } while (0)
 InventoryRead ReadInventory(RE::PlayerCharacter& player, const Equipped& eq) {
     InventoryRead out;
     if (!player.inventoryList) return out;
     auto& inventory = *player.inventoryList;
+    PH_TRI("read lock");
     RE::BSAutoReadLock lock{inventory.rwLock};
+    PH_TRI("locked");
     for (auto& item : inventory.data) {
+        PH_TRI("item");
         if (!item.object) continue;
         if (eq.ammo && item.object == eq.ammo) out.ammo += static_cast<int>(item.GetCount());
         if (eq.thrown && item.object == eq.thrown) out.thrown += static_cast<int>(item.GetCount());
         if (eq.weapon && item.object == eq.weapon && out.weaponName.empty()) {
             // The equipped stack's display name carries renames and legendary prefixes.
+            PH_TRI("equipped weapon stack");
             std::uint32_t id = 0;
             for (auto* stack = item.stackData.get(); stack; stack = stack->nextStack.get(), ++id) {
                 if (!stack->IsEquipped()) continue;
+                PH_TRI("GetDisplayFullName");
                 if (const char* name = item.GetDisplayFullName(id); name && *name) out.weaponName = ToUtf8(name);
+                PH_TRI("LegendaryEffects");
                 out.legendary = Mods::LegendaryEffects(stack->extra.get());
                 break;
             }
         }
     }
+    if (g_invTrace) { g_invTrace = false; spdlog::info("ReadInventory: completed"); }
     return out;
 }
 }
