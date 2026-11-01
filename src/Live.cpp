@@ -214,6 +214,8 @@ Json ReadFast(Raw& raw) {
     return out;
 }
 
+static bool g_slowTrace = true;
+#define PH_TR(n) do { if (g_slowTrace) spdlog::info("ReadSlow: {}", n); } while (0)
 Json ReadSlow(Raw& raw) {
     Json out = Json::object();
     auto* player = RE::PlayerCharacter::GetSingleton();
@@ -221,36 +223,47 @@ Json ReadSlow(Raw& raw) {
     if (!player || !av) { raw.valid = false; return out; }
     raw.valid = true;
 
+    PH_TR("health");
     const int hp = Round(Value(*player, av->health));
     out["hp"] = hp;
     out["hpMax"] = std::max(hp, Round(Permanent(*player, av->health)));
+    PH_TR("action points");
     const int ap = Round(Value(*player, av->actionPoints));
     out["ap"] = ap;
     out["apMax"] = std::max(ap, Round(Permanent(*player, av->actionPoints)));
+    PH_TR("rads");
     raw.radsValue = Value(*player, av->rads);
     raw.radsPermanent = Permanent(*player, av->rads);
     out["rads"] = std::clamp(Round(raw.radsValue), 0, 1000);
 
+    PH_TR("limb lambda");
     const auto limb = [&](RE::ActorValueInfo* info) {
         const float max = std::max(1.0F, Permanent(*player, info));
         return Round1(std::clamp(Value(*player, info) / max, 0.0F, 1.0F), 0.01);
     };
+    PH_TR("limbs");
     out["limbs"] = Json{{"head", limb(av->perceptionCondition)}, {"torso", limb(av->enduranceCondition)},
                         {"larm", limb(av->leftAttackCondition)}, {"rarm", limb(av->rightAttackCondition)},
                         {"lleg", limb(av->leftMobiltyCondition)}, {"rleg", limb(av->rightMobilityCondition)}};
 
+    PH_TR("level");
     raw.level = player->GetLevel();
+    PH_TR("experience");
     raw.experience = Value(*player, av->experience);
+    PH_TR("perkCount");
     raw.perks = std::max<int>(0, player->perkCount);
     out["level"] = raw.level;
     out["xp"] = Round1(Phosphor::XpFraction(raw.level, raw.experience), 0.001);
     out["perkPoints"] = raw.perks;
 
     std::string location, region;
+    PH_TR("GetCurrentLocation");
     auto* place = player->GetCurrentLocation();
     location = Name(place);
+    PH_TR("GetParentCell");
     auto* cell = player->GetParentCell();
     if (location.empty() && cell) location = Name(cell);
+    PH_TR("cell worldspace/region");
     if (cell && cell->IsExterior() && cell->worldSpace) region = Name(cell->worldSpace);
     if (region.empty() && place) {
         auto* root = place;
@@ -261,9 +274,12 @@ Json ReadSlow(Raw& raw) {
     if (region.empty()) region = lastRegion; else lastRegion = region;
     out["location"] = location;
     out["region"] = region;
+    PH_TR("IsInCombat");
     out["combat"] = player->IsInCombat();
 
+    PH_TR("ReadEquipped");
     const auto eq = ReadEquipped(*player);
+    PH_TR("ReadInventory");
     const auto inv = ReadInventory(*player, eq);
     out["weapon"] = CleanName(!inv.weaponName.empty() ? inv.weaponName : Name(eq.weapon), true);
     out["weaponLegendary"] = inv.legendary;
@@ -274,11 +290,13 @@ Json ReadSlow(Raw& raw) {
     if (eq.thrown && inv.thrown > 0) out["explosive"] = Json{{"name", CleanName(Name(eq.thrown), true)}, {"count", inv.thrown}};
     else out["explosive"] = nullptr;
 
+    PH_TR("calendar");
     if (auto* calendar = RE::Calendar::GetSingleton()) {
         if (calendar->gameHour) raw.hour = calendar->gameHour->value;
         if (calendar->timeScale) raw.timescale = calendar->timeScale->value;
     }
 
+    PH_TR("menus");
     Json menus = Json::array();
     raw.menuOpen = false;
     if (auto* ui = RE::UI::GetSingleton()) {
@@ -288,23 +306,28 @@ Json ReadSlow(Raw& raw) {
             for (auto pausing : kPausingMenus) if (pausing == name) raw.menuOpen = true;
         }
     }
+    PH_TR("PlayerInPowerArmor");
     raw.powerArmor = RE::PowerArmor::PlayerInPowerArmor();
+    PH_TR("gunState");
     const auto gun = static_cast<RE::GUN_STATE>(player->gunState);
     bool photo = false;
     for (const auto& m : menus) if (m == "PhotoMenu" || m == "ScreenArcherMenu") photo = true;
 #if defined(PHOSPHOR_AE)
     const bool thirdPerson = AE::options.ReadIf("bCrosshair", [] {
-        auto* camera = RE::PlayerCamera::GetSingleton();
+        PH_TR("camera");
+    auto* camera = RE::PlayerCamera::GetSingleton();
         return camera && camera->currentState && camera->currentState->id.get() == RE::CameraStates::k3rdPerson;
     }, false);
 #else
     auto* camera = RE::PlayerCamera::GetSingleton();
     const bool thirdPerson = camera && camera->currentState && camera->currentState->id.get() == RE::CameraStates::k3rdPerson;
 #endif
+    PH_TR("context (Mods::PlayerInScene, LatestNativeHud)");
     out["context"] = Json{{"menus", menus}, {"powerArmor", raw.powerArmor},
                           {"ads", gun == RE::GUN_STATE::kSighted || gun == RE::GUN_STATE::kFireSighted},
                           {"thirdPerson", thirdPerson},
                           {"scene", Mods::PlayerInScene()}, {"photo", photo}, {"hudHidden", LatestNativeHud().hidden}};
+    if (g_slowTrace) { g_slowTrace = false; spdlog::info("ReadSlow: completed"); }
     return out;
 }
 
