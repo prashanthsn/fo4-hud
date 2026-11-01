@@ -393,6 +393,13 @@ std::vector<std::string> LegendaryEffects(const RE::ExtraDataList* extra) {
 #if defined(PHOSPHOR_AE)
     AE_GATE("bModData", {});
 #endif
+    // NG: CommonLibF4-NG resolves its typed-keyword table through a single Address Library ID that is only valid on OG,
+    // so the attach-point lookup below reads garbage and faults (PhosphorHUD.log 2026-11-01). Skip until a NG ID is known.
+    if (REL::Module::IsNG()) {
+        static bool logged = false;
+        if (!logged) { logged = true; spdlog::info("Legendary effect names are unavailable on NG (typed keyword table)"); }
+        return {};
+    }
     std::vector<std::pair<int, std::string>> found;
     auto* instance = extra ? extra->GetByType<RE::BGSObjectInstanceExtra>() : nullptr;
     if (!instance || !instance->values) return {};

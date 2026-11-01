@@ -25,6 +25,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <set>
 #include <thread>
 
 static_assert(static_cast<unsigned>(PRISMA_UI_API::InterfaceVersion::V12) == 139,
@@ -389,6 +390,27 @@ void Guard(const std::function<void()>& task) noexcept {
     catch (const std::exception& e) { spdlog::error("Phosphor task failed: {}", e.what()); }
     catch (...) { spdlog::error("Phosphor task failed with an unknown exception"); }
 }
+// One engine read that faults only switches itself off (logged once); the rest of the HUD keeps running.
+std::set<std::string> deadReads;
+template <class F>
+Json SafeJson(const char* name, F&& fn, Json fallback = Json::object()) {
+    if (deadReads.contains(name)) return fallback;
+    Json result = fallback;
+    if (!SehInvoke([&] { result = fn(); })) {
+        spdlog::error("Phosphor read '{}' hit an engine fault: {}. That part of the HUD is switched off.", name, FaultWhere());
+        deadReads.insert(name);
+        return fallback;
+    }
+    return result;
+}
+template <class F>
+void SafeVoid(const char* name, F&& fn) {
+    if (deadReads.contains(name)) return;
+    if (!SehInvoke([&] { fn(); })) {
+        spdlog::error("Phosphor step '{}' hit an engine fault: {}. That part of the HUD is switched off.", name, FaultWhere());
+        deadReads.insert(name);
+    }
+}
 bool Queue(std::function<void()> task) {
     if (!api) return false;
     // At kGameDataReady PrismaUI may not have verified the window thread yet.
@@ -616,41 +638,41 @@ void LiveTick() {
         auto snap = Phosphor::Live::ReadSlow(raw);
         if (!raw.valid) return;
         spdlog::info("LiveTick first snapshot: ReadFast");
-        snap.update(Phosphor::Live::ReadFast(raw));
+        snap.update(SafeJson("ReadFast", [&] { return Phosphor::Live::ReadFast(raw); }));
         spdlog::info("LiveTick first snapshot: LootNow");
-        snap["loot"] = LootNow();
+        snap["loot"] = SafeJson("LootNow", [&] { return LootNow(); });
         Json startAllies = Json::array();
         spdlog::info("LiveTick first snapshot: ReadParty");
-        snap["party"] = Phosphor::Live::ReadParty(&startAllies);
+        snap["party"] = SafeJson("ReadParty", [&] { return Phosphor::Live::ReadParty(&startAllies); }, Json::array());
         spdlog::info("LiveTick first snapshot: ReadSurvival");
-        snap.update(Phosphor::Live::ReadSurvival());
+        snap.update(SafeJson("ReadSurvival", [&] { return Phosphor::Live::ReadSurvival(); }));
         spdlog::info("LiveTick first snapshot: ReadWeight");
-        snap["weight"] = Phosphor::Live::ReadWeight();
+        snap["weight"] = SafeJson("ReadWeight", [&] { return Phosphor::Live::ReadWeight(); });
         spdlog::info("LiveTick first snapshot: ReadTarget");
-        snap["target"] = Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000);
+        snap["target"] = SafeJson("ReadTarget", [&] { return Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000); }, Json(nullptr));
         spdlog::info("LiveTick first snapshot: ReadStealth");
-        snap["stealth"] = Phosphor::Live::ReadStealth(nullptr);
+        snap["stealth"] = SafeJson("ReadStealth", [&] { return Phosphor::Live::ReadStealth(nullptr); });
         questBaseline = false;
         spdlog::info("LiveTick first snapshot: QuestData");
         const auto pip = QuestData();
         spdlog::info("LiveTick first snapshot: ReadQuests");
-        snap.update(Phosphor::Live::ReadQuests(pip, options.locationMeters));
+        snap.update(SafeJson("ReadQuests", [&] { return Phosphor::Live::ReadQuests(pip, options.locationMeters); }));
         spdlog::info("LiveTick first snapshot: ReadEnemies");
-        auto enemies = Phosphor::Live::ReadEnemies();
+        auto enemies = SafeJson("ReadEnemies", [&] { return Phosphor::Live::ReadEnemies(); }, Json::array());
         const int enemyCount = static_cast<int>(enemies.size());
         for (auto& enemy : enemies) snap["markers"].push_back(std::move(enemy));
         for (auto& ally : startAllies) snap["markers"].push_back(std::move(ally));
         spdlog::info("LiveTick first snapshot: ModFields");
-        ModFields(snap, pip, enemyCount);
+        SafeVoid("ModFields", [&] { ModFields(snap, pip, enemyCount); });
         spdlog::info("LiveTick first snapshot: Mods::ReputationEvents");
-        Phosphor::Mods::ReputationEvents();  // baseline
+        SafeVoid("ReputationEvents", [&] { Phosphor::Mods::ReputationEvents(); });  // baseline
         for (const auto& m : snap["party"])
             if (m.contains("affinity") && m["affinity"].is_number()) affinitySeen[m.value("name", std::string{})] = m["affinity"].get<float>();
         if (snap.contains("karma")) karmaSeen = snap["karma"].value("value", 0.0);
         delta.Clear();
         delta.Changes(snap);
         spdlog::info("LiveTick first snapshot: ReadEffects");
-        snap["effects"] = Phosphor::Live::ReadEffects(effectsKey, maxEffectSeconds);
+        snap["effects"] = SafeJson("ReadEffects", [&] { return Phosphor::Live::ReadEffects(effectsKey, maxEffectSeconds); }, Json::array());
         lastEffects = now;
         snap["snapshot"] = true;
         snap["paused"] = raw.menuOpen;
@@ -706,12 +728,12 @@ void LiveTick() {
     if (slow) {
         current = Phosphor::Live::ReadSlow(raw);
         const auto pip = QuestData();
-        current.update(Phosphor::Live::ReadQuests(pip, options.locationMeters));
-        auto enemies = Phosphor::Live::ReadEnemies();
+        current.update(SafeJson("ReadQuests", [&] { return Phosphor::Live::ReadQuests(pip, options.locationMeters); }));
+        auto enemies = SafeJson("ReadEnemies", [&] { return Phosphor::Live::ReadEnemies(); }, Json::array());
         const int enemyCount = static_cast<int>(enemies.size());
         for (auto& enemy : enemies) current["markers"].push_back(std::move(enemy));
         Json allies = Json::array();
-        current["party"] = Phosphor::Live::ReadParty(&allies);
+        current["party"] = SafeJson("ReadParty", [&] { return Phosphor::Live::ReadParty(&allies); }, Json::array());
         for (auto& ally : allies) current["markers"].push_back(std::move(ally));
         static Clock::time_point lastCompare{};
         if (options.engineQuests && now - liveStartedAt > std::chrono::seconds(10) && now - lastCompare > std::chrono::seconds(15)) {
@@ -732,13 +754,13 @@ void LiveTick() {
             Send(Json{{"notify", Json{{"text", "Compass markers unavailable"}, {"sub", sub}, {"kind", "bad"}, {"ms", 15000}}}});
             spdlog::warn("Pip-Boy feed still unreachable 20 s after the HUD started; showed the compass notice");
         }
-        ModFields(current, pip, enemyCount);
-        for (auto& m : Phosphor::Mods::LegendaryLootEvents(dropMarkers)) Send(m);
-        ModEvents(current);
-        current.update(Phosphor::Live::ReadSurvival());
-        current["weight"] = Phosphor::Live::ReadWeight();
+        SafeVoid("ModFields", [&] { ModFields(current, pip, enemyCount); });
+        SafeVoid("LegendaryLootEvents", [&] { for (auto& m : Phosphor::Mods::LegendaryLootEvents(dropMarkers)) Send(m); });
+        SafeVoid("ModEvents", [&] { ModEvents(current); });
+        current.update(SafeJson("ReadSurvival", [&] { return Phosphor::Live::ReadSurvival(); }));
+        current["weight"] = SafeJson("ReadWeight", [&] { return Phosphor::Live::ReadWeight(); });
         int stealthRaw = 0;
-        current["stealth"] = Phosphor::Live::ReadStealth(&stealthRaw);
+        current["stealth"] = SafeJson("ReadStealth", [&] { return Phosphor::Live::ReadStealth(&stealthRaw); });
         if (current["stealth"].value("sneaking", false) && std::abs(stealthRaw - lastStealthRaw) >= 10) {
             spdlog::debug("Detection level against player: {}", stealthRaw);
             lastStealthRaw = stealthRaw;
@@ -746,20 +768,20 @@ void LiveTick() {
         lastSlow = now;
     }
     if (!liveTraced) spdlog::info("LiveTick: tick ReadFast");
-    current.update(Phosphor::Live::ReadFast(raw));
+    current.update(SafeJson("ReadFast", [&] { return Phosphor::Live::ReadFast(raw); }));
     if (!raw.valid) return;
-    current["loot"] = LootNow();  // every tick: the selection moves as the player scrolls
+    current["loot"] = SafeJson("LootNow", [&] { return LootNow(); });  // every tick: the selection moves as the player scrolls
     if (!liveTraced) spdlog::info("LiveTick: tick ReadTarget");
-    current["target"] = Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000);
+    current["target"] = SafeJson("ReadTarget", [&] { return Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000); }, Json(nullptr));
     const auto nativeHud = Phosphor::Live::LatestNativeHud();
     current["crosshair"] = nativeHud.crosshair;
     current["flashlight"] = nativeHud.flashlight;
     std::vector<std::string> exploded;
     if (!liveTraced) spdlog::info("LiveTick: tick Mines::Read");
-    current["mines"] = Phosphor::Mines::Read(&exploded);
+    current["mines"] = SafeJson("Mines::Read", [&] { return Phosphor::Mines::Read(&exploded); }, Json::array());
     Json feedLines = Json::object();
     if (!liveTraced) spdlog::info("LiveTick: tick HudTextFields");
-    HudTextFields(current, feedLines, nativeHud.text);
+    SafeVoid("HudTextFields", [&] { HudTextFields(current, feedLines, nativeHud.text); });
     Json message = delta.Changes(current);
     if (!liveTraced) { liveTraced = true; spdlog::info("LiveTick: first full tick completed"); }
     if (feedLines.contains("notify") && !message.contains("notify")) message["notify"] = feedLines["notify"];
@@ -1231,7 +1253,7 @@ extern "C" __declspec(dllexport) bool F4SEAPI F4SEPlugin_Load(const F4SE::LoadIn
 #if defined(PHOSPHOR_AE)
         spdlog::info("Phosphor HUD 0.9.24-ae1 EXPERIMENTAL built for AE 1.11.240; in-game behavior UNVERIFIED");
 #else
-        spdlog::info("Phosphor HUD 0.9.24 [NG test build 4] loaded for {} {}; live HUD",
+        spdlog::info("Phosphor HUD 0.9.24 [NG test build 5] loaded for {} {}; live HUD",
                      f4se->RuntimeVersion() == F4SE::RUNTIME_1_10_984 ? "NG" : "OG", f4se->RuntimeVersion().string());
 #endif
         return true;
