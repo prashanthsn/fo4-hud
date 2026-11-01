@@ -562,7 +562,9 @@ Phosphor::Pipboy::Snapshot QuestData() {
     return Phosphor::Pipboy::Latest();
 }
 
+bool liveTraced = false;
 void LiveTick() {
+        spdlog::info("LiveTick first snapshot: QuickLootFirst::Maintain");
     Phosphor::QuickLootFirst::Maintain();
     const auto now = Clock::now();
     const bool blocked = BlockingMenu();
@@ -570,36 +572,51 @@ void LiveTick() {
 #if defined(PHOSPHOR_AE)
         Phosphor::AE::ResetObservations();
 #endif
+        spdlog::info("LiveTick first snapshot: ReadSlow");
         auto snap = Phosphor::Live::ReadSlow(raw);
         if (!raw.valid) return;
+        spdlog::info("LiveTick first snapshot: ReadFast");
         snap.update(Phosphor::Live::ReadFast(raw));
+        spdlog::info("LiveTick first snapshot: LootNow");
         snap["loot"] = LootNow();
         Json startAllies = Json::array();
+        spdlog::info("LiveTick first snapshot: ReadParty");
         snap["party"] = Phosphor::Live::ReadParty(&startAllies);
+        spdlog::info("LiveTick first snapshot: ReadSurvival");
         snap.update(Phosphor::Live::ReadSurvival());
+        spdlog::info("LiveTick first snapshot: ReadWeight");
         snap["weight"] = Phosphor::Live::ReadWeight();
+        spdlog::info("LiveTick first snapshot: ReadTarget");
         snap["target"] = Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000);
+        spdlog::info("LiveTick first snapshot: ReadStealth");
         snap["stealth"] = Phosphor::Live::ReadStealth(nullptr);
         questBaseline = false;
+        spdlog::info("LiveTick first snapshot: QuestData");
         const auto pip = QuestData();
+        spdlog::info("LiveTick first snapshot: ReadQuests");
         snap.update(Phosphor::Live::ReadQuests(pip, options.locationMeters));
+        spdlog::info("LiveTick first snapshot: ReadEnemies");
         auto enemies = Phosphor::Live::ReadEnemies();
         const int enemyCount = static_cast<int>(enemies.size());
         for (auto& enemy : enemies) snap["markers"].push_back(std::move(enemy));
         for (auto& ally : startAllies) snap["markers"].push_back(std::move(ally));
+        spdlog::info("LiveTick first snapshot: ModFields");
         ModFields(snap, pip, enemyCount);
+        spdlog::info("LiveTick first snapshot: Mods::ReputationEvents");
         Phosphor::Mods::ReputationEvents();  // baseline
         for (const auto& m : snap["party"])
             if (m.contains("affinity") && m["affinity"].is_number()) affinitySeen[m.value("name", std::string{})] = m["affinity"].get<float>();
         if (snap.contains("karma")) karmaSeen = snap["karma"].value("value", 0.0);
         delta.Clear();
         delta.Changes(snap);
+        spdlog::info("LiveTick first snapshot: ReadEffects");
         snap["effects"] = Phosphor::Live::ReadEffects(effectsKey, maxEffectSeconds);
         lastEffects = now;
         snap["snapshot"] = true;
         snap["paused"] = raw.menuOpen;
         snap["time"] = Json{{"hour", std::round(raw.hour * 1000) / 1000}, {"timescale", raw.timescale}};
         snap["mines"] = Json::array();
+        spdlog::info("LiveTick first snapshot: Send reset");
         Send(Json{{"reset", true}});
         if (localFactionSeen) {
             Json status;
@@ -608,7 +625,9 @@ void LiveTick() {
 #if defined(PHOSPHOR_AE)
         Phosphor::Live::LogAeSelfCheck(snap, pip);
 #endif
+        spdlog::info("LiveTick first snapshot: Send snapshot");
         Send(snap);
+        spdlog::info("LiveTick first snapshot: ReadIllnesses");
         illnesses = Phosphor::Live::ReadIllnesses(raw.timescale);
         for (const auto& [id, left] : illnesses) {
             Json ill{{"id", id}, {"quiet", true}};
@@ -686,18 +705,23 @@ void LiveTick() {
         }
         lastSlow = now;
     }
+    if (!liveTraced) spdlog::info("LiveTick: tick ReadFast");
     current.update(Phosphor::Live::ReadFast(raw));
     if (!raw.valid) return;
     current["loot"] = LootNow();  // every tick: the selection moves as the player scrolls
+    if (!liveTraced) spdlog::info("LiveTick: tick ReadTarget");
     current["target"] = Phosphor::Live::ReadTarget(lastHitId.load(), NowMs() - lastHitAt.load() < 6000);
     const auto nativeHud = Phosphor::Live::LatestNativeHud();
     current["crosshair"] = nativeHud.crosshair;
     current["flashlight"] = nativeHud.flashlight;
     std::vector<std::string> exploded;
+    if (!liveTraced) spdlog::info("LiveTick: tick Mines::Read");
     current["mines"] = Phosphor::Mines::Read(&exploded);
     Json feedLines = Json::object();
+    if (!liveTraced) spdlog::info("LiveTick: tick HudTextFields");
     HudTextFields(current, feedLines, nativeHud.text);
     Json message = delta.Changes(current);
+    if (!liveTraced) { liveTraced = true; spdlog::info("LiveTick: first full tick completed"); }
     if (feedLines.contains("notify") && !message.contains("notify")) message["notify"] = feedLines["notify"];
     if (!exploded.empty()) message["mineExploded"] = exploded.size() == 1 ? Json(exploded.front()) : Json(exploded);
     if (message.contains("karma") && message["karma"].is_object()) {
