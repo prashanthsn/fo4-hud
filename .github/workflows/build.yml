@@ -1,0 +1,25 @@
+name: Build PhosphorHUD
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Get CommonLibF4-NG
+        shell: pwsh
+        run: git clone --depth 1 https://github.com/alandtse/commonlibf4.git "$env:RUNNER_TEMP\CommonLibF4-NG"
+      - name: Build
+        shell: pwsh
+        run: .\tools\build.ps1 -CommonLib "$env:RUNNER_TEMP\CommonLibF4-NG"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PhosphorHUD-build
+          path: |
+            build/release/PhosphorHUD.dll
+            .build/xmake.log
