@@ -16,6 +16,7 @@
 #include "QuickLootFirst.h"
 #include <atomic>
 #include <cctype>
+#include <cstring>
 #include <map>
 #include <cmath>
 #include <filesystem>
@@ -343,9 +344,48 @@ void StopLive() {
     targetMutationsSeen = 0;
 }
 
+// Access violations raised by raw engine reads are caught and logged instead of closing the game (NG layouts differ
+// from the OG ones these reads were checked on). C++ exceptions pass through to the handlers in Guard.
+unsigned long g_faultCode = 0;
+void* g_faultAddress = nullptr;
+void* g_faultTarget = nullptr;
+int SehFilter(EXCEPTION_POINTERS* ep) {
+    const auto code = ep->ExceptionRecord->ExceptionCode;
+    if (code == 0xE06D7363u || code == 0x406D1388u) return EXCEPTION_CONTINUE_SEARCH;  // C++ exception / thread name
+    if (code != EXCEPTION_ACCESS_VIOLATION && code != EXCEPTION_IN_PAGE_ERROR && code != EXCEPTION_ILLEGAL_INSTRUCTION &&
+        code != EXCEPTION_INT_DIVIDE_BY_ZERO && code != EXCEPTION_STACK_OVERFLOW) return EXCEPTION_CONTINUE_SEARCH;
+    g_faultCode = code;
+    g_faultAddress = ep->ExceptionRecord->ExceptionAddress;
+    g_faultTarget = ep->ExceptionRecord->NumberParameters > 1 ? reinterpret_cast<void*>(ep->ExceptionRecord->ExceptionInformation[1]) : nullptr;
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+bool SehInvoke(const std::function<void()>& task) {
+    __try { task(); return true; }
+    __except (SehFilter(GetExceptionInformation())) { return false; }
+}
+std::string FaultWhere() {
+    HMODULE mod = nullptr;
+    char name[MAX_PATH] = "?";
+    if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           static_cast<LPCSTR>(g_faultAddress), &mod) && mod) {
+        GetModuleFileNameA(mod, name, MAX_PATH);
+    }
+    const auto base = reinterpret_cast<std::uintptr_t>(mod);
+    const auto rva = reinterpret_cast<std::uintptr_t>(g_faultAddress) - base;
+    const char* slash = std::strrchr(name, '\\');
+    return std::format("code 0x{:08X} at {}+0x{:X} (address 0x{:X}), touching 0x{:X}", g_faultCode,
+                       slash ? slash + 1 : name, rva, reinterpret_cast<std::uintptr_t>(g_faultAddress),
+                       reinterpret_cast<std::uintptr_t>(g_faultTarget));
+}
+
 // No exception may unwind across the game/framework callback boundary.
 void Guard(const std::function<void()>& task) noexcept {
-    try { task(); }
+    try {
+        if (!SehInvoke(task)) {
+            spdlog::error("Phosphor task hit an engine fault: {}. Live HUD reads are switched off for this session.", FaultWhere());
+            options.live = false;
+        }
+    }
     catch (const std::exception& e) { spdlog::error("Phosphor task failed: {}", e.what()); }
     catch (...) { spdlog::error("Phosphor task failed with an unknown exception"); }
 }
