@@ -96,10 +96,9 @@ std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) 
     if (has("crossbow")) return "crossbow";
     if (has("longbow") || has("fallout bow") || has("woodbow") || has("mongolbow") ||
         has("compoundbow") || has("recurvebow") || has(" bow")) return "bow";
-    if (has("famas") || has("ste yr aug") || has("steyr aug") || has("g36c")) return "bullpup";
+    if (has("famas") || has("steyr aug")) return "bullpup";
     if (has("dragunov") || has("svd") || has("sv-98") || has("barrett") ||
-        has("m82") || has("sniper") || has("marksman") || has("ratslayer") ||
-        has("varmint rifle")) return "sniper";
+        has("m82") || has("vss") || has("sniper") || has("marksman") || has("ratslayer")) return "sniper";
     if (has("origin 12") || has("saiga") || has("shotgun") || has("catalyst") ||
         has("spas-12") || has("ithaca") || has("chiappa") || has("police shotgun") ||
         has("triple threat") || has("break-action")) return "shotgun";
