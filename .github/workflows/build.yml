@@ -22,4 +22,7 @@ jobs:
           name: PhosphorHUD-build
           path: |
             build/release/PhosphorHUD.dll
+            mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/hud.html
+            mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/assets/weapons/**
+            docs/WEAPON_ARTWORK_PART1_HANDOFF.md
             .build/xmake.log
