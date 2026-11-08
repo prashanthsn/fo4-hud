@@ -94,7 +94,7 @@ std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) 
     if (has("longbow") || has("fallout bow") || has(" bow")) return "bow";
     if (has("famas")) return "bullpup";
     if (has("dragunov") || has("svd") || has("sniper") || has("marksman")) return "sniper";
-    if (has("origin 12") || has("saiga") || has("shotgun") || has("break-action")) return "shotgun";
+    if (has("origin 12") || has("saiga") || has("shotgun") || has("catalyst") || has("break-action")) return "shotgun";
     if (has("minigun") || has("mg69") || has("lmg") || has("machine gun")) return "heavy";
     if (has("launcher") || has("fat man") || has("missile") || has("flamer")) return "launcher";
     if (has("cryolance") || has("archimedes") || has("laser") || has("plasma") || has("energy")) return "energy";
@@ -361,8 +361,9 @@ Json ReadSlow(Raw& raw) {
     PH_TR("ReadInventory");
     const auto inv = ReadInventory(*player, eq);
     out["weapon"] = CleanName(!inv.weaponName.empty() ? inv.weaponName : Name(eq.weapon), true);
-    out["weaponClass"] = WeaponClass(eq.weapon, out["weapon"].get<std::string>());
-    out["weaponIcon"] = WeaponIcon(eq.weapon, out["weapon"].get<std::string>());
+    const auto weaponFormName = Name(eq.weapon);
+    out["weaponClass"] = WeaponClass(eq.weapon, weaponFormName);
+    out["weaponIcon"] = WeaponIcon(eq.weapon, weaponFormName);
     out["ammoName"] = eq.ammo ? CleanName(Name(eq.ammo), true) : "";
     out["weaponLegendary"] = inv.legendary;
     out["clip"] = eq.clip;
