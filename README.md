@@ -28,6 +28,10 @@ Requirements: Windows, MSVC 2022 (x64), [xmake](https://xmake.io) 3.x, a CommonL
 4. HUD page checks: `pip install playwright jsonschema`, `python -m playwright install chromium`,
    then `python tools/replay.py` (should print "all good") and `python tests/test_hud.py`.
 
+## Tactical weapon/ammo HUD extension
+
+The `feature/tactical-weapon-ammo-hud` branch adds a compact weapon glyph/category and the equipped ammo form's display name to the existing bottom-right ammo counter. The new message fields are `weaponClass` (`none`, `firearm`, `explosive`, `mine`, `other`) and `ammoName`. Category labels are intentionally broad; the engine type used by this source does not reliably distinguish rifle/pistol/shotgun/energy subtypes. The native DLL must be rebuilt for the target runtime before testing in game.
+
 ## License
 
 Phosphor HUD's own code is released under the MIT License (`LICENSE`). Third-party components keep their own
