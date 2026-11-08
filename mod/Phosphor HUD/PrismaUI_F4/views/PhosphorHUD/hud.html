@@ -1126,7 +1126,7 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
   "use strict";
   var LOCAL = location.protocol === "file:" || /Ultralight/i.test(navigator.userAgent);
   /* open hud.html#preview from disk to see the demo with your local portraits */
-  var IN_GAME = location.hash !== "#preview";
+  var IN_GAME = !(LOCAL && location.hash === "#preview");
   if (IN_GAME) document.documentElement.classList.add("ingame");
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $ = function(id){ return document.getElementById(id); };
