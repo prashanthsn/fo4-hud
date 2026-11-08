@@ -730,6 +730,12 @@
     "weapon": {
       "type": "string"
     },
+    "weaponClass": {
+      "enum": ["none", "firearm", "explosive", "mine", "other"]
+    },
+    "ammoName": {
+      "type": "string"
+    },
     "clip": {
       "type": "integer",
       "minimum": 0
