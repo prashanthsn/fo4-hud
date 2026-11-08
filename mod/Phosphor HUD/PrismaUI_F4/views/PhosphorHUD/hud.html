@@ -576,6 +576,12 @@ body{font-family:var(--f-label)}
 .limbs .crip{fill:rgba(255,112,82,.55);stroke:var(--rad);animation:blink 1.4s steps(2,start) infinite}
 .ammo{text-align:right}
 .wname{font-size:calc(15px*var(--ts,1));letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.wmeta{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:3px;min-height:13px;font-family:var(--f-mono);font-size:calc(9px*var(--ts,1));letter-spacing:.13em;text-transform:uppercase;color:var(--muted);opacity:.9}
+.wmeta svg{width:13px;height:13px;flex:none;color:var(--cyan);stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.wmeta .wtype{color:var(--cyan)}
+.wmeta .wsep{opacity:.45}
+.wmeta .aname{color:var(--ink)}
+.wmeta.gone{display:none}
 .mag{display:flex;align-items:baseline;justify-content:flex-end;gap:10px;font-family:var(--f-display);line-height:.9}
 .clip{font-size:78px;font-weight:500;font-variant-numeric:tabular-nums;transition:color .2s}
 .sep{width:1px;height:44px;background:rgba(220,245,223,.3);transform:skewX(-18deg);align-self:center}
@@ -795,6 +801,7 @@ html.ingame,html.ingame body{background:transparent!important}
             <div class="adren" id="adren" hidden><span class="ad-segs" id="adSegs"></span><small>Adrenaline <b id="adRank">0</b></small></div>
             <div class="wleg" id="wLeg" hidden><svg viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z"/></svg><span id="wLegTxt"></span></div>
             <div class="wname" id="wName">10mm Pistol</div>
+            <div class="wmeta" id="wMeta"><span id="wGlyph"><svg viewBox="0 0 24 24"><path d="M2 9h14l3 2h3v2h-4l-3-2H9l-2 4H4l2-5H2z"/></svg></span><span class="wtype" id="wType">FIREARM</span><span class="wsep">·</span><span class="aname" id="ammoName">10MM ROUND</span></div>
             <div class="mag"><span class="clip" id="clip">12</span><span class="sep"></span><span class="res" id="res">216</span></div>
             <div class="nade" id="nadeRow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="14" r="6.5"/><path d="M9 7.5h4V5h-4zM13 6h3l2 2" stroke-linejoin="round"/></svg><b id="nade">08</b><span class="nn" id="nadeName">FRAG</span></div>
             <div class="lamp gone" id="lamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="2" y="9.5" width="8" height="5" rx="1"/><path d="M10 9.5l4-2.5v10l-4-2.5"/><path d="M17 9l4-2M17.5 12H22M17 15l4 2"/></svg><span>LIGHT</span></div>
@@ -1118,7 +1125,7 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
       {id:"comp", t:"ally", b:-160, dist:6, label:"Companion"},
       {id:"e1", t:"enemy", b:118}
     ],
-    clip:9, clipMax:12, reserve:216, weapon:"10mm Pistol", grenades:8,
+    clip:9, clipMax:12, reserve:216, weapon:"10mm Pistol", weaponClass:"firearm", ammoName:"10mm Round", grenades:8,
     needs:{food:0.7, water:0.45, rest:0.24},
     limbs:{head:1,torso:1,larm:1,rarm:0.6,lleg:0,rleg:1},
     combat:false, target:null, loot:null,
@@ -1489,10 +1496,22 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
   }
 
   /* ---------- weapon, needs, limbs ---------- */
+  var WEAPON_GLYPHS = {
+    firearm:'<svg viewBox="0 0 24 24"><path d="M2 9h14l3 2h3v2h-4l-3-2H9l-2 4H4l2-5H2z"/><path d="M14 9V6h3v3M6 15h4"/></svg>',
+    explosive:'<svg viewBox="0 0 24 24"><circle cx="11" cy="14" r="6"/><path d="M9 8V5h4v3M13 6h4l2 2M17 14h3"/></svg>',
+    mine:'<svg viewBox="0 0 24 24"><path d="M4 16h16l-2-6H6zM8 10V7h8v3M12 7V4M10 19v2M14 19v2"/></svg>',
+    other:'<svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l2 13h8l2-13M9 7V4h6v3"/></svg>',
+    none:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>'
+  };
   function renderAmmo(){
     $("clip").textContent = S.clip;
     $("res").textContent = S.reserve;
     $("wName").textContent = S.weapon;
+    var weaponClass = WEAPON_GLYPHS[S.weaponClass] ? S.weaponClass : "other";
+    $("wType").textContent = weaponClass.toUpperCase();
+    $("ammoName").textContent = S.ammoName || "NO AMMO";
+    $("wGlyph").innerHTML = WEAPON_GLYPHS[weaponClass];
+    $("wMeta").classList.toggle("gone", weaponClass === "none" && !S.ammoName);
     $("nade").textContent = ("0" + S.grenades).slice(-2);
     var nb = $("nadeName"), nr = nb.parentNode, x = S.explosive;
     /* nothing in the throwable slot: the row folds away */
@@ -2700,6 +2719,8 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
     if (d.markerRemove) S.markers = S.markers.filter(function(m){ return m.id !== d.markerRemove; });
     ["clip","clipMax","reserve","grenades"].forEach(function(k){ if (d[k] !== undefined){ S[k] = +d[k]; amm = true; } });
     if (d.weapon !== undefined){ S.weapon = d.weapon; amm = true; }
+    if (d.weaponClass !== undefined){ S.weaponClass = d.weaponClass; amm = true; }
+    if (d.ammoName !== undefined){ S.ammoName = d.ammoName; amm = true; }
     if (d.needs){ Object.assign(S.needs, d.needs); renderNeeds(); }
     if (d.limbs){ Object.assign(S.limbs, d.limbs); renderLimbs(); wake($("kit")); }
     if (d.figure) setFigure(d.figure);
