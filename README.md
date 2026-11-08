@@ -30,7 +30,7 @@ Requirements: Windows, MSVC 2022 (x64), [xmake](https://xmake.io) 3.x, a CommonL
 
 ## Tactical weapon/ammo HUD extension
 
-The `feature/tactical-weapon-ammo-hud` branch adds a compact weapon glyph/category and the equipped ammo form's display name to the existing bottom-right ammo counter. The new message fields are `weaponClass` (`none`, `firearm`, `explosive`, `mine`, `other`) and `ammoName`. Category labels are intentionally broad; the engine type used by this source does not reliably distinguish rifle/pistol/shotgun/energy subtypes. The native DLL must be rebuilt for the target runtime before testing in game.
+The `feature/tactical-weapon-ammo-hud` branch places a large loaded/reserve ammo counter above a prominent weapon silhouette and full equipped weapon name. The native message fields are `weaponClass` (weapon-family label), `weaponIcon` (named silhouette profile with family fallback), and `ammoName` (equipped ammo form display name). The first named profiles cover FAMAS, Origin 12, Saiga, Catalyst AAS, SVD/Dragunov, PP-19 Bizon, M1911, Desert Eagle, SIG P220/P226/P320/P322/P365, AER15, Service Rifle, StG-44, Stechkin APS, Archimedes-II and Minigun; unknown modded guns fall back to a rifle silhouette, and other weapon forms use their closest generic profile. Matching uses the base weapon form name so player-renamed weapons retain their correct icon. The HUD uses inline vector silhouettes, so no external image assets are required. The native DLL must be rebuilt for the target runtime before testing in game.
 
 ## License
 
