@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
     Check(invalidTypes.messages.empty() && !invalidTypes.errors.empty(), "Schema-invalid records prevent any replay output");
     std::ifstream examples("examples/messages.jsonl");
     auto allExamples = ReadReplay(examples, schema);
-    Check(allExamples.errors.empty() && allExamples.messages.size() == 95, "Canonical examples pass native replay validation");
+    Check(allExamples.errors.empty() && allExamples.messages.size() == 96, "Canonical examples pass native replay validation");
     std::istringstream unicode("{\"explosive\":{\"short\":\"★☢★☢★☢\"}}\n");
     Check(ReadReplay(unicode, schema).errors.empty(), "Schema lengths count Unicode characters, not UTF-8 bytes");
 
