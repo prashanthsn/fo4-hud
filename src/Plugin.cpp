@@ -536,7 +536,7 @@ void CreateView() {
     domReady = false;
     displaying = false;
     replay.Stop();
-    g_view = api->CreateView("PhosphorHUD/hud.html", DomReady);
+    g_view = api->CreateView("PhosphorHUD/hud.html?ingame=1", DomReady);
     if (!g_view) {
         if (!waitingForPrismaLogged) {
             spdlog::info("Waiting for PrismaUI initialization before creating HUD view");
