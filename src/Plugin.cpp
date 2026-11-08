@@ -428,7 +428,7 @@ bool Queue(std::function<void()> task) {
 void Send(const Json& message) {
     if (!domReady || !ViewValid()) return;
     const auto serialized = message.dump(-1, ' ', false, Json::error_handler_t::replace);
-    api->InteropCall(g_view, "hudUpdate", serialized.c_str());
+    api->InteropCall(g_view, "hud.update", serialized.c_str());
     // Messages go to PhosphorHUD/messages.jsonl only, so the main log keeps a whole session of diagnostics.
     if (messageLog) messageLog->debug("{}", serialized);
 }
