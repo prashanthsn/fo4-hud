@@ -574,14 +574,22 @@ body{font-family:var(--f-label)}
 .limbs .hurt{fill:rgba(242,196,106,.22);stroke:var(--amber)}
 .limbs .bad{fill:rgba(255,154,82,.4);stroke:#ff9a52}
 .limbs .crip{fill:rgba(255,112,82,.55);stroke:var(--rad);animation:blink 1.4s steps(2,start) infinite}
-.ammo{text-align:right}
-.wname{font-size:calc(15px*var(--ts,1));letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.wmeta{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:3px;min-height:13px;font-family:var(--f-mono);font-size:calc(9px*var(--ts,1));letter-spacing:.13em;text-transform:uppercase;color:var(--muted);opacity:.9}
-.wmeta svg{width:13px;height:13px;flex:none;color:var(--cyan);stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ammo{text-align:right;min-width:260px}
+.wname{font-size:calc(21px*var(--ts,1));line-height:1.05;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);font-weight:500;text-shadow:var(--readability-shadow,0 2px 4px rgba(0,0,0,.85))}
+.wmeta{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:6px;min-height:16px;font-family:var(--f-mono);font-size:calc(11px*var(--ts,1));letter-spacing:.13em;text-transform:uppercase;color:var(--muted);opacity:.95}
 .wmeta .wtype{color:var(--cyan)}
 .wmeta .wsep{opacity:.45}
 .wmeta .aname{color:var(--ink)}
 .wmeta.gone{display:none}
+.weapon-card{display:flex;align-items:center;justify-content:flex-end;gap:13px;margin-top:9px;max-width:390px}
+.weapon-art{width:148px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--pip);filter:drop-shadow(0 0 5px rgba(147,232,164,.22))}
+.weapon-art svg{width:100%;height:100%;overflow:visible}
+.weapon-art path,.weapon-art line,.weapon-art polyline,.weapon-art circle,.weapon-art rect{fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.weapon-art .solid{fill:currentColor;stroke:none}
+.weapon-info{min-width:0;text-align:right}
+.weapon-info .wname{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weapon-info .wmeta{white-space:nowrap}
+.weapon-card.none .weapon-art{opacity:.45}
 .mag{display:flex;align-items:baseline;justify-content:flex-end;gap:10px;font-family:var(--f-display);line-height:.9}
 .clip{font-size:78px;font-weight:500;font-variant-numeric:tabular-nums;transition:color .2s}
 .sep{width:1px;height:44px;background:rgba(220,245,223,.3);transform:skewX(-18deg);align-self:center}
@@ -800,9 +808,8 @@ html.ingame,html.ingame body{background:transparent!important}
           <div class="ammo" id="ammo">
             <div class="adren" id="adren" hidden><span class="ad-segs" id="adSegs"></span><small>Adrenaline <b id="adRank">0</b></small></div>
             <div class="wleg" id="wLeg" hidden><svg viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z"/></svg><span id="wLegTxt"></span></div>
-            <div class="wname" id="wName">10mm Pistol</div>
-            <div class="wmeta" id="wMeta"><span id="wGlyph"><svg viewBox="0 0 24 24"><path d="M2 9h14l3 2h3v2h-4l-3-2H9l-2 4H4l2-5H2z"/></svg></span><span class="wtype" id="wType">FIREARM</span><span class="wsep">·</span><span class="aname" id="ammoName">10MM ROUND</span></div>
             <div class="mag"><span class="clip" id="clip">12</span><span class="sep"></span><span class="res" id="res">216</span></div>
+            <div class="weapon-card" id="weaponCard"><div class="weapon-art" id="wGlyph" aria-hidden="true"></div><div class="weapon-info"><div class="wname" id="wName">10mm Pistol</div><div class="wmeta" id="wMeta"><span class="wtype" id="wType">PISTOL</span><span class="wsep">·</span><span class="aname" id="ammoName">10MM ROUND</span></div></div></div>
             <div class="nade" id="nadeRow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="14" r="6.5"/><path d="M9 7.5h4V5h-4zM13 6h3l2 2" stroke-linejoin="round"/></svg><b id="nade">08</b><span class="nn" id="nadeName">FRAG</span></div>
             <div class="lamp gone" id="lamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="2" y="9.5" width="8" height="5" rx="1"/><path d="M10 9.5l4-2.5v10l-4-2.5"/><path d="M17 9l4-2M17.5 12H22M17 15l4 2"/></svg><span>LIGHT</span></div>
           </div>
@@ -1496,21 +1503,35 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
   }
 
   /* ---------- weapon, needs, limbs ---------- */
+  // Purpose-drawn tactical silhouettes. Named mod weapons resolve to a profile in Live.cpp;
+  // any unrecognized weapon safely falls back to a family silhouette.
   var WEAPON_GLYPHS = {
-    firearm:'<svg viewBox="0 0 24 24"><path d="M2 9h14l3 2h3v2h-4l-3-2H9l-2 4H4l2-5H2z"/><path d="M14 9V6h3v3M6 15h4"/></svg>',
-    explosive:'<svg viewBox="0 0 24 24"><circle cx="11" cy="14" r="6"/><path d="M9 8V5h4v3M13 6h4l2 2M17 14h3"/></svg>',
-    mine:'<svg viewBox="0 0 24 24"><path d="M4 16h16l-2-6H6zM8 10V7h8v3M12 7V4M10 19v2M14 19v2"/></svg>',
-    other:'<svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l2 13h8l2-13M9 7V4h6v3"/></svg>',
-    none:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>'
+    pistol:'<svg viewBox="0 0 180 72"><path d="M18 25h92l12 7h22v9h-35l-15-7H77l-8 23H48l4-23H18z"/><path d="M25 25V17h56v8M90 25V16h17v9M48 57h22M126 41v7"/></svg>',
+    rifle:'<svg viewBox="0 0 180 72"><path d="M8 29h28l12-8h34l12 8h66v9h-36l-9 6H91l-7-6H49l-8 8H27l4-8H8z"/><path d="M83 29V18h24v11M104 44l-4 18H83l3-18M47 29l-4-8h-9M145 29V18h8v11M17 29v-7h13"/></svg>',
+    bullpup:'<svg viewBox="0 0 180 72"><path d="M12 29h22l10-8h33l13 8h76v9h-34l-9 7H89l-8-7H47l-6 8H25l3-8H12z"/><path d="M75 29V17h25v12M102 45l-4 16H82l4-16M148 29V18h8v11M20 29V20h13"/></svg>',
+    shotgun:'<svg viewBox="0 0 180 72"><path d="M8 27h118l12 5h30v8h-34l-11-5H57l-8 9H31l4-9H8z"/><path d="M18 27V19h104v8M105 40l-4 19H83l3-19M136 32V19h12v13M20 27h15"/></svg>',
+    sniper:'<svg viewBox="0 0 180 72"><path d="M7 31h29l13-7h41l14 7h68v8h-40l-9 6H88l-8-6H48l-8 8H25l4-8H7z"/><path d="M65 24V16h42v8M75 16v-5h22v5M99 45l-4 16H78l4-16M139 31V20h10v11M12 31v-8h18"/></svg>',
+    smg:'<svg viewBox="0 0 180 72"><path d="M16 27h99l12 7h25v8h-35l-12-6H74l-7 20H49l4-20H16z"/><path d="M70 27V17h22v10M91 42l-3 18H72l3-18M127 34V23h10v11M22 27v-7h24"/></svg>',
+    heavy:'<svg viewBox="0 0 180 72"><path d="M7 28h32l12-8h58l12 8h50v11h-43l-10 7H79l-8-7H49l-7 8H25l4-8H7z"/><path d="M63 28V15h44v13M82 46l-5 16H58l5-16M125 28V14h9v14M143 28V14h9v14M17 28v-9h13"/></svg>',
+    energy:'<svg viewBox="0 0 180 72"><path d="M12 29h28l13-8h38l12 8h62v9h-35l-11 7H85l-8-7H48l-7 8H25l4-8H12z"/><path d="M80 29V17h28v12M91 45l-4 16H68l5-16M137 29V17h15v12"/><path d="M155 12l-8 12h9l-8 13" /></svg>',
+    launcher:'<svg viewBox="0 0 180 72"><path d="M12 25h139v18H12zM151 29h17v10h-17M31 25V17h88v8M62 43l-5 17H39l5-17M119 43l-4 17h-18l4-17"/></svg>',
+    bow:'<svg viewBox="0 0 180 72"><path d="M38 8Q105 36 38 64M38 8L38 64M38 8L145 36L38 64M50 36h103M145 36l-10-5v10z"/></svg>',
+    crossbow:'<svg viewBox="0 0 180 72"><path d="M20 36h140M90 12Q28 36 90 60M90 12L90 60M46 36h88M90 36l-8-5v10zM78 36l-8 19h20l-2-19"/></svg>',
+    grenade:'<svg viewBox="0 0 180 72"><path d="M74 24h32v8h10v22H64V32h10zM81 24v-9h18v9M99 17h17l9 8M64 43h52"/></svg>',
+    mine:'<svg viewBox="0 0 180 72"><path d="M39 49h102l-12-24H51zM56 25V16h68v9M90 16V8M80 55v7M100 55v7M46 49h88"/></svg>',
+    other:'<svg viewBox="0 0 180 72"><path d="M42 15h96l-9 43H51zM64 15V8h52v7M58 29h64M64 42h52"/></svg>',
+    none:'<svg viewBox="0 0 180 72"><circle cx="90" cy="36" r="20"/><path d="M78 36h24M90 24v24"/></svg>'
   };
+  var WEAPON_LABELS = {pistol:"PISTOL",rifle:"RIFLE",bullpup:"BULLPUP RIFLE",shotgun:"SHOTGUN",sniper:"SNIPER RIFLE",smg:"SUBMACHINE GUN",heavy:"HEAVY WEAPON",energy:"ENERGY WEAPON",launcher:"LAUNCHER",bow:"BOW",crossbow:"CROSSBOW",grenade:"GRENADE",mine:"MINE",other:"WEAPON",none:"NO WEAPON"};
   function renderAmmo(){
     $("clip").textContent = S.clip;
     $("res").textContent = S.reserve;
     $("wName").textContent = S.weapon;
     var weaponClass = WEAPON_GLYPHS[S.weaponClass] ? S.weaponClass : "other";
-    $("wType").textContent = weaponClass.toUpperCase();
+    $("wType").textContent = WEAPON_LABELS[weaponClass] || "WEAPON";
     $("ammoName").textContent = S.ammoName || "NO AMMO";
     $("wGlyph").innerHTML = WEAPON_GLYPHS[weaponClass];
+    $("weaponCard").classList.toggle("none", weaponClass === "none");
     $("wMeta").classList.toggle("gone", weaponClass === "none" && !S.ammoName);
     $("nade").textContent = ("0" + S.grenades).slice(-2);
     var nb = $("nadeName"), nr = nb.parentNode, x = S.explosive;
