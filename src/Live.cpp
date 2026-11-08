@@ -64,6 +64,11 @@ std::string WeaponIcon(const RE::TESObjectWEAP* weapon, std::string_view name) {
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
     const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
     if (has("famas")) return "famas";
+    if (has("alien blaster") || has("ufo blaster")) return "alienblaster";
+    if (has("gamma gun")) return "gammagun";
+    if (has("gatling laser")) return "gatlinglaser";
+    if (has("missile launcher")) return "missilelauncher";
+    if (has("tesla cannon")) return "teslacannon";
     if (has("bas-b") || has("xm7 spear")) return "basb";
     if (has("combat rifle")) return "combatrifle";
     if (has("hunting rifle") || has("varmint rifle")) return "huntingrifle";
