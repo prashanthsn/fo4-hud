@@ -65,6 +65,10 @@ std::string WeaponIcon(const RE::TESObjectWEAP* weapon, std::string_view name) {
     const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
     if (has("famas")) return "famas";
     if (has("origin 12")) return "origin12";
+    if (has("saiga")) return "saiga";
+    if (has("catalyst")) return "catalyst";
+    if (has("stg-44") || has("sturmgewehr")) return "stg44";
+    if (has("stechkin")) return "stechkin";
     if (has("dragunov") || has("svd")) return "svd";
     if (has("bizon")) return "bizon";
     if (has("m1911")) return "m1911";
