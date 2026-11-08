@@ -581,11 +581,15 @@ body{font-family:var(--f-label)}
 .wmeta .wsep{opacity:.45}
 .wmeta .aname{color:var(--ink)}
 .wmeta.gone{display:none}
-.weapon-card{display:flex;align-items:center;justify-content:flex-end;gap:13px;margin-top:9px;max-width:390px}
-.weapon-art{width:148px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--pip);filter:drop-shadow(0 0 5px rgba(147,232,164,.22))}
+.weapon-card{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:5px;max-width:410px}
+.weapon-art{width:190px;height:76px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--pip);filter:drop-shadow(0 1px 2px rgba(147,232,164,.28))}
 .weapon-art svg{width:100%;height:100%;overflow:visible}
-.weapon-art path,.weapon-art line,.weapon-art polyline,.weapon-art circle,.weapon-art rect{fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.weapon-art path,.weapon-art line,.weapon-art polyline,.weapon-art circle,.weapon-art rect{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.weapon-art svg path:first-child{fill:currentColor;stroke:none}
+.weapon-art svg path:not(:first-child){fill:none;stroke:currentColor;stroke-width:1.8}
 .weapon-art .solid{fill:currentColor;stroke:none}
+.weapon-card .weapon-info{min-width:0;max-width:210px}
+.weapon-card .wname{max-width:210px}
 .weapon-info{min-width:0;text-align:right}
 .weapon-info .wname{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .weapon-info .wmeta{white-space:nowrap}
@@ -645,71 +649,15 @@ html.ingame,html.ingame body{background:transparent!important}
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
 
-/* Unified tactical field interface — consistent treatment across every HUD module */
-:root{
-  --ground:#07100c;--panel:#0b1711;--ink:#e4f3e4;--muted:#a0b6a4;
-  --line:rgba(201,239,205,.28);--pip:#b9f2bf;--pip-soft:rgba(185,242,191,.48);
-  --cyan:#b5d9d0;--amber:#e9c77d;--rad:#f07862;--glass:rgba(5,13,9,.72);
-  --f-display:"Saira Condensed","Bahnschrift","Arial Narrow",sans-serif;
-  --f-label:"Saira Semi Condensed","Bahnschrift","Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
-}
-.stage{--idle:.9}
-.glass,.loot,.target,.qbanner,.vitals,.kit,.rcol,.compass,.party,.subs,.feed,.msg,.hint{
-  text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7);
-}
-.glass{
-  --c:rgba(185,242,191,.5);
-  background-color:rgba(5,13,9,.66);
-  background-image:linear-gradient(90deg,rgba(185,242,191,.05),transparent 65%);
-  border:1px solid rgba(185,242,191,.28);border-radius:2px;
-  box-shadow:0 8px 26px rgba(0,0,0,.24),inset 0 0 18px rgba(185,242,191,.035);
-  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
-}
-.msg,.loot,.target,.qbanner,.t-muts span,.l-head,.l-list li,.l-keys,.party .pm,.compass,.weapon-card,.nade,.ammo,.vitals,.rcol,.kit{
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.7));
-}
-.msg{border-left:2px solid var(--pip);padding:13px 16px}
-.msg svg,.q-eye,.subs b{color:var(--pip)}
-.t-bar{height:5px;background:rgba(240,120,98,.22);border:1px solid rgba(240,120,98,.3)}
-.t-bar .fill{background:var(--rad);box-shadow:0 0 9px rgba(240,120,98,.35)}
-.qbanner{padding:14px 22px;background:linear-gradient(180deg,rgba(5,13,9,.38),transparent)}
-.q-title{letter-spacing:.1em;text-shadow:0 2px 10px #000}
-.q-rule{height:2px}
-.fi{padding:4px 8px;background:linear-gradient(90deg,transparent,rgba(5,13,9,.48));border-right:2px solid rgba(185,242,191,.38)}
-.cross .ring i{background:var(--pip);box-shadow:0 0 3px #000,0 0 7px rgba(185,242,191,.35)}
-.stealth{padding:7px 13px;background:rgba(5,13,9,.5);border:1px solid rgba(185,242,191,.2)}
-.vitals{padding:12px 14px;background:linear-gradient(90deg,rgba(5,13,9,.62),rgba(5,13,9,.2));border-left:2px solid var(--pip-soft)}
-.compass{filter:drop-shadow(0 2px 5px #000)}
-.cbar::after{height:2px;background:rgba(185,242,191,.58)}
-.cd.n,.needle{color:var(--pip)}
-.loot{background:rgba(5,13,9,.72);border:1px solid var(--line);border-left:2px solid var(--pip);border-radius:2px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.l-head{border-bottom:1px solid var(--line)}
-.l-list li.sel{background:rgba(185,242,191,.13)}
-.kit{padding:12px 14px;background:linear-gradient(270deg,rgba(5,13,9,.66),rgba(5,13,9,.12));border-right:2px solid var(--pip-soft)}
-.ammo{min-width:280px}
-.weapon-card{position:relative;gap:14px;max-width:430px;margin-top:12px;padding:9px 11px;background:linear-gradient(110deg,rgba(5,13,9,.72),rgba(5,13,9,.3));border:1px solid rgba(185,242,191,.42);border-left:3px solid var(--pip);clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px))}
-.weapon-art{width:176px;height:76px;color:var(--pip);filter:drop-shadow(0 3px 5px rgba(0,0,0,.95))}
-.weapon-info .wname{font-size:calc(24px*var(--ts,1));letter-spacing:.14em}
-.wmeta{font-size:calc(10.5px*var(--ts,1));letter-spacing:.16em}
-.wmeta .wtype{color:var(--pip)}
-.mag{gap:12px}
-.clip{font-size:82px;color:var(--ink);text-shadow:0 2px 8px rgba(0,0,0,.9)}
-.res{color:var(--muted)}
-.nade{padding:5px 8px;border:1px solid rgba(185,242,191,.25);background:rgba(5,13,9,.48)}
-.nade svg{color:var(--pip)}
-.fx .trk{fill:rgba(5,13,9,.78);stroke:rgba(185,242,191,.3)}
-.fx .val{filter:drop-shadow(0 0 4px rgba(185,242,191,.45))}
-.pm-pic{border:1px solid rgba(185,242,191,.45);box-shadow:0 0 0 3px rgba(5,13,9,.55)}
-.pm-ring .val{stroke:var(--pip)}
-.hint{padding:8px 12px;background:rgba(5,13,9,.68);border:1px solid var(--line)}
-.kbd{background:rgba(5,13,9,.78);border-color:var(--pip-soft)}
-/* Alert colours remain semantic: danger red, caution amber, information pale cyan. */
-.target .t-mx,.wleg{color:var(--amber)}
-.target.leg .t-bar .fill{background:linear-gradient(90deg,var(--rad),#e9a36c)}
-.t-muts span.defense{--mc:var(--cyan)}
-.t-muts span.heal{--mc:var(--pip)}
-@media(max-width:700px){.weapon-art{width:132px;height:60px}.weapon-card{gap:8px;padding:6px}}
+
+/* Weapon silhouette treatment: keep the original Phosphor HUD palette and place the weapon profile below the magazine count. */
+.weapon-art svg{shape-rendering:geometricPrecision}
+.weapon-card.none .weapon-art svg{opacity:.55}
+.weapon-art svg path:first-child{fill-rule:evenodd}
+.weapon-art svg[viewBox="0 0 180 72"] path:first-child{stroke-linejoin:round}
+.weapon-card .weapon-info{text-align:right}
+.weapon-card .wmeta{justify-content:flex-end}
+@media(max-width:700px){.weapon-art{width:150px;height:64px}.weapon-card{gap:9px}}
 
 </style>
 </head><body>
