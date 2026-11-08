@@ -56,6 +56,28 @@ bool IsGun(const RE::TESObjectWEAP& weapon) { return TypeOf(weapon) == RE::WEAPO
 // Weapon silhouette profiles. Names are deliberately matched case-insensitively because
 // mod-added weapons often retain their recognizable model name in the equipped display name.
 // Unknown guns fall back to the rifle silhouette; non-guns use their engine weapon family.
+std::string WeaponIcon(const RE::TESObjectWEAP* weapon, std::string_view name) {
+    if (!weapon) return "none";
+    std::string lowerName(name);
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
+    if (has("famas")) return "famas";
+    if (has("origin 12")) return "origin12";
+    if (has("dragunov") || has("svd")) return "svd";
+    if (has("bizon")) return "bizon";
+    if (has("m1911")) return "m1911";
+    if (has("desert eagle")) return "deserteagle";
+    if (has("p220") || has("p226") || has("p320") || has("p322") || has("p365")) return "sig";
+    if (has("aer15")) return "aer15";
+    if (has("service rifle")) return "servicerifle";
+    if (has("archimedes")) return "archimedes";
+    if (has("minigun")) return "minigun";
+    if (has("crossbow")) return "crossbow";
+    if (has("fallout bow") || has("longbow") || has(" bow")) return "bow";
+    return WeaponClass(weapon, name);
+}
+
 std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) {
     if (!weapon) return "none";
     if (IsThrown(*weapon)) return TypeOf(*weapon) == RE::WEAPON_TYPE::kMine ? "mine" : "grenade";
@@ -335,6 +357,7 @@ Json ReadSlow(Raw& raw) {
     const auto inv = ReadInventory(*player, eq);
     out["weapon"] = CleanName(!inv.weaponName.empty() ? inv.weaponName : Name(eq.weapon), true);
     out["weaponClass"] = WeaponClass(eq.weapon, out["weapon"].get<std::string>());
+    out["weaponIcon"] = WeaponIcon(eq.weapon, out["weapon"].get<std::string>());
     out["ammoName"] = eq.ammo ? CleanName(Name(eq.ammo), true) : "";
     out["weaponLegendary"] = inv.legendary;
     out["clip"] = eq.clip;
