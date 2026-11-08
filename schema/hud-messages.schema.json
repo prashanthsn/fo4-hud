@@ -731,7 +731,7 @@
       "type": "string"
     },
     "weaponClass": {
-      "enum": ["none", "firearm", "explosive", "mine", "other"]
+      "enum": ["none", "pistol", "rifle", "bullpup", "shotgun", "sniper", "smg", "heavy", "energy", "launcher", "bow", "crossbow", "grenade", "mine", "other", "firearm", "explosive"]
     },
     "ammoName": {
       "type": "string"
