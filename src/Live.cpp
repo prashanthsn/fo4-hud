@@ -90,18 +90,29 @@ std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) 
     std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(),
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
     const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
+
+    // Modlist-specific names from the user's active weapon export. Keep the tests broad enough
+    // to cover renamed variants/presets while preserving a sensible family fallback.
     if (has("crossbow")) return "crossbow";
-    if (has("longbow") || has("fallout bow") || has(" bow")) return "bow";
-    if (has("famas")) return "bullpup";
-    if (has("dragunov") || has("svd") || has("sniper") || has("marksman")) return "sniper";
-    if (has("origin 12") || has("saiga") || has("shotgun") || has("catalyst") || has("break-action")) return "shotgun";
-    if (has("minigun") || has("mg69") || has("lmg") || has("machine gun")) return "heavy";
+    if (has("longbow") || has("fallout bow") || has("woodbow") || has("mongolbow") ||
+        has("compoundbow") || has("recurvebow") || has(" bow")) return "bow";
+    if (has("famas") || has("ste yr aug") || has("steyr aug") || has("g36c")) return "bullpup";
+    if (has("dragunov") || has("svd") || has("sv-98") || has("barrett") ||
+        has("m82") || has("sniper") || has("marksman") || has("ratslayer") ||
+        has("varmint rifle")) return "sniper";
+    if (has("origin 12") || has("saiga") || has("shotgun") || has("catalyst") ||
+        has("spas-12") || has("ithaca") || has("chiappa") || has("police shotgun") ||
+        has("triple threat") || has("break-action")) return "shotgun";
+    if (has("minigun") || has("mg69") || has("lmg") || has("machine gun") ||
+        has("m249") || has("saw") || has("rpk")) return "heavy";
     if (has("launcher") || has("fat man") || has("missile") || has("flamer")) return "launcher";
-    if (has("cryolance") || has("archimedes") || has("laser") || has("plasma") || has("energy")) return "energy";
+    if (has("cryolance") || has("archimedes") || has("laser") || has("plasma") ||
+        has("lazgun") || has("energy")) return "energy";
     if (has("desert eagle") || has("m1911") || has("pistol") || has("p220") || has("p226") ||
-        has("p320") || has("p322") || has("p365") || has("stechkin") || has("magnum") || has("revolver"))
-        return "pistol";
-    if (has("bizon") || has("famas smg") || has("submachine") || has(" smg") || has("mp-"))
+        has("p320") || has("p322") || has("p365") || has("stechkin") || has("mp412") ||
+        has("rex") || has("magnum") || has("revolver") || has("glock p80")) return "pistol";
+    if (has("bizon") || has("cbj-ms") || has("mac-11") || has("lk-05") ||
+        has("tnp-45") || has("submachine") || has(" smg") || has("pp-19") || has("mp-"))
         return "smg";
     if (TypeOf(*weapon) == RE::WEAPON_TYPE::kGun) return "rifle";
     return "other";
