@@ -56,6 +56,7 @@ bool IsGun(const RE::TESObjectWEAP& weapon) { return TypeOf(weapon) == RE::WEAPO
 // Weapon silhouette profiles. Names are deliberately matched case-insensitively because
 // mod-added weapons often retain their recognizable model name in the equipped display name.
 // Unknown guns fall back to the rifle silhouette; non-guns use their engine weapon family.
+std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name);
 std::string WeaponIcon(const RE::TESObjectWEAP* weapon, std::string_view name) {
     if (!weapon) return "none";
     std::string lowerName(name);
