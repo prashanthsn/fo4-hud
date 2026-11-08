@@ -1132,7 +1132,7 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
       {id:"comp", t:"ally", b:-160, dist:6, label:"Companion"},
       {id:"e1", t:"enemy", b:118}
     ],
-    clip:9, clipMax:12, reserve:216, weapon:"10mm Pistol", weaponClass:"firearm", ammoName:"10mm Round", grenades:8,
+    clip:9, clipMax:12, reserve:216, weapon:"10mm Pistol", weaponClass:"pistol", weaponIcon:"pistol", ammoName:"10mm Round", grenades:8,
     needs:{food:0.7, water:0.45, rest:0.24},
     limbs:{head:1,torso:1,larm:1,rarm:0.6,lleg:0,rleg:1},
     combat:false, target:null, loot:null,
@@ -1520,7 +1520,18 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
     grenade:'<svg viewBox="0 0 180 72"><path d="M74 24h32v8h10v22H64V32h10zM81 24v-9h18v9M99 17h17l9 8M64 43h52"/></svg>',
     mine:'<svg viewBox="0 0 180 72"><path d="M39 49h102l-12-24H51zM56 25V16h68v9M90 16V8M80 55v7M100 55v7M46 49h88"/></svg>',
     other:'<svg viewBox="0 0 180 72"><path d="M42 15h96l-9 43H51zM64 15V8h52v7M58 29h64M64 42h52"/></svg>',
-    none:'<svg viewBox="0 0 180 72"><circle cx="90" cy="36" r="20"/><path d="M78 36h24M90 24v24"/></svg>'
+    none:'<svg viewBox="0 0 180 72"><circle cx="90" cy="36" r="20"/><path d="M78 36h24M90 24v24"/></svg>',
+    famas:'<svg viewBox="0 0 180 72"><path d="M8 30h25l10-9h34l14 9h77v9h-37l-10 7H88l-8-7H45l-7 9H22l4-9H8z"/><path d="M76 30V17h27v13M102 46l-4 15H81l4-15M149 30V18h8v12"/></svg>',
+    origin12:'<svg viewBox="0 0 180 72"><path d="M8 27h110l13 6h35v9h-37l-12-6H54l-8 10H27l4-10H8z"/><path d="M22 27V18h98v9M100 42l-4 18H78l4-18M132 33V20h13v13"/></svg>',
+    svd:'<svg viewBox="0 0 180 72"><path d="M7 31h29l13-7h41l13 7h68v8h-39l-10 6H87l-8-6H48l-8 8H24l5-8H7z"/><path d="M65 24V16h43v8M73 16v-5h25v5M98 45l-4 16H77l5-16M140 31V19h10v12"/></svg>',
+    bizon:'<svg viewBox="0 0 180 72"><path d="M13 27h104l12 7h25v9h-35l-12-7H72l-7 18H48l4-18H13z"/><path d="M67 27V17h25v10M87 43l-4 18H66l4-18M124 34V22h10v12"/><path d="M74 53h40l-5 8H76z"/></svg>',
+    m1911:'<svg viewBox="0 0 180 72"><path d="M22 27h82l11 7h25v8h-37l-12-7H74l-8 21H48l4-21H22z"/><path d="M32 27V19h57v8M84 27V17h14v10M48 56h19"/></svg>',
+    deserteagle:'<svg viewBox="0 0 180 72"><path d="M18 25h104l12 8h23v10h-38l-12-8H78l-8 22H47l5-22H18z"/><path d="M25 25V15h79v10M101 25V13h17v12M48 57h24"/></svg>',
+    sig:'<svg viewBox="0 0 180 72"><path d="M22 27h88l10 7h23v8h-35l-11-7H76l-8 21H48l5-21H22z"/><path d="M30 27V18h64v9M91 27V17h14v10M48 56h22"/></svg>',
+    aer15:'<svg viewBox="0 0 180 72"><path d="M7 29h29l12-8h38l13 8h70v9h-39l-9 6H88l-8-6H49l-8 8H25l4-8H7z"/><path d="M82 29V16h27v13M89 44l-4 17H66l5-17M139 29V17h11v12M45 29V18h-9"/></svg>',
+    servicerifle:'<svg viewBox="0 0 180 72"><path d="M8 30h27l13-8h42l12 8h69v8h-39l-9 7H88l-8-7H48l-8 8H24l5-8H8z"/><path d="M80 30V17h25v13M91 45l-4 16H68l5-16M138 30V19h11v11"/></svg>',
+    archimedes:'<svg viewBox="0 0 180 72"><path d="M12 29h28l12-8h39l13 8h65v9h-37l-11 7H85l-8-7H48l-7 8H25l4-8H12z"/><path d="M82 29V15h29v14M91 45l-4 16H68l5-16M141 29V16h14v13"/><path d="M158 12l-8 12h9l-8 13"/></svg>',
+    minigun:'<svg viewBox="0 0 180 72"><path d="M19 29h86l12 7h26v8h-38l-12-7H75l-7 18H49l5-18H19z"/><path d="M82 29V17h28v12M112 26V12h7v14M124 26V12h7v14M136 26V12h7v14M90 44l-4 17H67l5-17"/></svg>'
   };
   var WEAPON_LABELS = {pistol:"PISTOL",rifle:"RIFLE",bullpup:"BULLPUP RIFLE",shotgun:"SHOTGUN",sniper:"SNIPER RIFLE",smg:"SUBMACHINE GUN",heavy:"HEAVY WEAPON",energy:"ENERGY WEAPON",launcher:"LAUNCHER",bow:"BOW",crossbow:"CROSSBOW",grenade:"GRENADE",mine:"MINE",other:"WEAPON",none:"NO WEAPON"};
   function renderAmmo(){
@@ -1528,9 +1539,10 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
     $("res").textContent = S.reserve;
     $("wName").textContent = S.weapon;
     var weaponClass = WEAPON_GLYPHS[S.weaponClass] ? S.weaponClass : "other";
+    var weaponIcon = WEAPON_GLYPHS[S.weaponIcon] ? S.weaponIcon : weaponClass;
     $("wType").textContent = WEAPON_LABELS[weaponClass] || "WEAPON";
     $("ammoName").textContent = S.ammoName || "NO AMMO";
-    $("wGlyph").innerHTML = WEAPON_GLYPHS[weaponClass];
+    $("wGlyph").innerHTML = WEAPON_GLYPHS[weaponIcon];
     $("weaponCard").classList.toggle("none", weaponClass === "none");
     $("wMeta").classList.toggle("gone", weaponClass === "none" && !S.ammoName);
     $("nade").textContent = ("0" + S.grenades).slice(-2);
@@ -2741,6 +2753,7 @@ hudUpdate('{"paused":true}')       // freeze timers while menus are open
     ["clip","clipMax","reserve","grenades"].forEach(function(k){ if (d[k] !== undefined){ S[k] = +d[k]; amm = true; } });
     if (d.weapon !== undefined){ S.weapon = d.weapon; amm = true; }
     if (d.weaponClass !== undefined){ S.weaponClass = d.weaponClass; amm = true; }
+    if (d.weaponIcon !== undefined){ S.weaponIcon = d.weaponIcon; amm = true; }
     if (d.ammoName !== undefined){ S.ammoName = d.ammoName; amm = true; }
     if (d.needs){ Object.assign(S.needs, d.needs); renderNeeds(); }
     if (d.limbs){ Object.assign(S.limbs, d.limbs); renderLimbs(); wake($("kit")); }
