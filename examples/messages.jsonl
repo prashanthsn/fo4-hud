@@ -13,8 +13,8 @@
 {"illness":{"id":"parasites","hoursLeft":120}}
 {"illness":{"id":"infection","hoursLeft":36,"quiet":true}}
 {"cure":true}
-{"weapon":"G36C","weaponClass":"firearm","ammoName":"5.56mm Round","clip":30,"clipMax":30,"reserve":974}
-{"weapon":"Combat Shotgun","weaponClass":"firearm","ammoName":"Shotgun Shell","clip":3,"clipMax":8,"reserve":216,"weaponLegendary":["Bloodied","Explosive"]}
+{"weapon":"G36C","weaponClass":"rifle","ammoName":"5.56mm Round","clip":30,"clipMax":30,"reserve":974}
+{"weapon":"Combat Shotgun","weaponClass":"shotgun","ammoName":"Shotgun Shell","clip":3,"clipMax":8,"reserve":216,"weaponLegendary":["Bloodied","Explosive"]}
 {"explosive":{"name":"Plasma Grenade","short":"PLSM","count":2}}
 {"explosive":null}
 {"flashlight":true}
