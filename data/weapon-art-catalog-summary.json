@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "sourceFiles": [
+    "FO4_Weapon_Export.csv",
+    "loadorder.txt"
+  ],
+  "resolution": "Duplicate FormIDs resolved by retaining the record from the latest plugin in the supplied load order; then filtered to winning WEAP records containing QuickkeyGun.",
+  "counts": {
+    "rawWEAPRecords": 1620,
+    "winningFormIDs": 1077,
+    "winningQuickkeyGunRecords": 520,
+    "uniqueDisplayNames": 325
+  },
+  "familyCounts": {
+    "rifle": 103,
+    "pistol": 65,
+    "energy": 49,
+    "shotgun": 27,
+    "heavy": 26,
+    "launcher": 23,
+    "sniper": 15,
+    "bullpup": 6,
+    "smg": 5,
+    "bow": 4,
+    "crossbow": 2
+  },
+  "artworkPolicy": "Use dedicated silhouette only where the profile genuinely matches the weapon; otherwise use the matching family silhouette. NPC-only, dummy and companion records are flagged for review and should not be treated as proof of a player-usable item."
+}
