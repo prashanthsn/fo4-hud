@@ -152,8 +152,8 @@ Stage names (index 0–5):
 
 | Field | Type | Notes |
 |---|---|---|
-| `weapon` | string | Equipped weapon's display name. |
-| `weaponClass` | `none` / `pistol` / `rifle` / `bullpup` / `shotgun` / `sniper` / `smg` / `heavy` / `energy` / `launcher` / `bow` / `crossbow` / `grenade` / `mine` / `other` | Tactical silhouette profile. Known mod weapon names are matched first; unknown guns fall back to rifle and other unknown weapon forms fall back to other. Legacy `firearm` and `explosive` values remain accepted by the schema for older message producers. |
+| `weapon` | string | Equipped weapon's display name. The large tactical weapon panel displays this below the ammo counter. |
+| `weaponClass` | `none` / `pistol` / `rifle` / `bullpup` / `shotgun` / `sniper` / `smg` / `heavy` / `energy` / `launcher` / `bow` / `crossbow` / `grenade` / `mine` / `other` | Weapon-family label. Known weapon names are matched first; unknown guns fall back to rifle. Legacy `firearm` and `explosive` values remain accepted for older producers. |\n| `weaponIcon` | string | Dedicated silhouette profile where recognized (FAMAS, Origin 12, SVD, Bizon, M1911, Desert Eagle, SIG pack, AER15, Service Rifle, Archimedes-II and Minigun); otherwise falls back to `weaponClass`. |
 | `ammoName` | string | Display name of the equipped weapon's actual ammo form; empty when no ammo form is attached. |
 | `clip`, `clipMax` | integer | Rounds loaded, magazine size. |
 | `reserve` | integer | Matching ammo in inventory, not counting the loaded rounds. |
