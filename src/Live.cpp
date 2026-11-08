@@ -53,6 +53,17 @@ bool IsThrown(const RE::TESObjectWEAP& weapon) {
 }
 bool IsGun(const RE::TESObjectWEAP& weapon) { return TypeOf(weapon) == RE::WEAPON_TYPE::kGun; }
 
+// Broad categories only: the engine weapon type reliably distinguishes these families.
+std::string WeaponClass(const RE::TESObjectWEAP* weapon) {
+    if (!weapon) return "none";
+    switch (TypeOf(*weapon)) {
+    case RE::WEAPON_TYPE::kGun: return "firearm";
+    case RE::WEAPON_TYPE::kGrenade: return "explosive";
+    case RE::WEAPON_TYPE::kMine: return "mine";
+    default: return "other";
+    }
+}
+
 struct Equipped {
     RE::TESObjectWEAP* weapon = nullptr;
     RE::TESObjectWEAP::InstanceData* instance = nullptr;
@@ -307,6 +318,8 @@ Json ReadSlow(Raw& raw) {
     PH_TR("ReadInventory");
     const auto inv = ReadInventory(*player, eq);
     out["weapon"] = CleanName(!inv.weaponName.empty() ? inv.weaponName : Name(eq.weapon), true);
+    out["weaponClass"] = WeaponClass(eq.weapon);
+    out["ammoName"] = eq.ammo ? CleanName(Name(eq.ammo), true) : "";
     out["weaponLegendary"] = inv.legendary;
     out["clip"] = eq.clip;
     out["clipMax"] = eq.clipMax;
