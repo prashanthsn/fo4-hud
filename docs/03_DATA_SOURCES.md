@@ -23,7 +23,7 @@ Target: Fallout 4 OG 1.10.163 (this load order runs Backported Archive2 Support 
 | `location`, `region` | Current `BGSLocation` full name, falling back to the cell name; region = worldspace full name. Send on location-change events. | ? event name |
 | `time.hour`, `time.timescale` | Globals `GameHour` and `TimeScale`. | ✔ globals |
 | `combat` | Player combat state. | ? call |
-| `weapon`, `clip`, `clipMax`, `reserve` | Equipped weapon instance (name includes mods), its current ammo count and magazine capacity, and the inventory count of its ammo type minus the loaded rounds. | ? calls |
+| `weapon`, `weaponClass`, `ammoName`, `clip`, `clipMax`, `reserve` | Equipped weapon instance (name includes mods), broad engine weapon category, actual ammo form display name, current ammo count and magazine capacity, and inventory count of its ammo type minus loaded rounds. | Existing weapon/ammo/clip reads; category and ammo name use equipped form records |
 | `explosive` | Item in the grenade equip slot plus its inventory count. Explosives Cycler equips into this same slot (✔ from its translation file: "equip the next one from the same list"). | ? slot API |
 | `gear` | Equipped biped slots: 33 Body → clothed; 41 [A] Torso, 42 [A] L Arm, 43 [A] R Arm, 44 [A] L Leg, 45 [A] R Leg → armor pieces; 30 Hair Top (helmets/hats) → head armor. | ✔ 0.9.0 (also 36–40 under-armor → clothed, 46 → head) · ? modded armor |
 | `target` | The actor the vanilla enemy health meter is showing (`HUDEnemyHealthMeter`'s target), its health fraction, level, and whether it's legendary. | ? how to read the meter's target |
