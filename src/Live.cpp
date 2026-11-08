@@ -64,6 +64,18 @@ std::string WeaponIcon(const RE::TESObjectWEAP* weapon, std::string_view name) {
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
     const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
     if (has("famas")) return "famas";
+    if (has("tt-33") || has("tokarev")) return "m1911";
+    if (has("spas-12") || has("police shotgun") || has("darlene") && has("shotgun")) return "origin12";
+    if (has("sv-98") || has("barrett m82") || has("vss") || has("vintorez")) return "svd";
+    if (has("h&k g36") || has("g36") || has("sg 550")) return "aer15";
+    if (has("akm") || has("service rifle") || has("fn fal")) return "servicerifle";
+    if (has("fn m249") || has("m249 saw") || has("mg69")) return "minigun";
+    if (has("steyr aug")) return "famas";
+    if (has("mac-11") || has("lk-05") || has("tnp-45") || has("pp-19")) return "bizon";
+    if (has("beretta m9")) return "sig";
+    if (has("glock p80")) return "m1911";
+    if (has("pl-15") || has("lebedev")) return "sig";
+    if (has("as val")) return "servicerifle";
     if (has("origin 12")) return "origin12";
     if (has("saiga")) return "saiga";
     if (has("catalyst")) return "catalyst";
