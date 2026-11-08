@@ -734,7 +734,7 @@
       "enum": ["none", "pistol", "rifle", "bullpup", "shotgun", "sniper", "smg", "heavy", "energy", "launcher", "bow", "crossbow", "grenade", "mine", "other", "firearm", "explosive"]
     },
     "weaponIcon": {
-      "enum": ["none", "pistol", "rifle", "bullpup", "shotgun", "sniper", "smg", "heavy", "energy", "launcher", "bow", "crossbow", "grenade", "mine", "other", "famas", "origin12", "svd", "bizon", "m1911", "deserteagle", "sig", "aer15", "servicerifle", "archimedes", "minigun"]
+      "enum": ["none", "pistol", "rifle", "bullpup", "shotgun", "sniper", "smg", "heavy", "energy", "launcher", "bow", "crossbow", "grenade", "mine", "other", "famas", "origin12", "saiga", "catalyst", "stg44", "stechkin", "svd", "bizon", "m1911", "deserteagle", "sig", "aer15", "servicerifle", "archimedes", "minigun"]
     },
     "ammoName": {
       "type": "string"
