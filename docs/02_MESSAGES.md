@@ -153,7 +153,7 @@ Stage names (index 0–5):
 | Field | Type | Notes |
 |---|---|---|
 | `weapon` | string | Equipped weapon's display name. |
-| `weaponClass` | `none` / `firearm` / `explosive` / `mine` / `other` | Broad icon category derived from the engine weapon type; does not guess rifle/pistol/energy subclasses. |
+| `weaponClass` | `none` / `pistol` / `rifle` / `bullpup` / `shotgun` / `sniper` / `smg` / `heavy` / `energy` / `launcher` / `bow` / `crossbow` / `grenade` / `mine` / `other` | Tactical silhouette profile. Known mod weapon names are matched first; unknown guns fall back to rifle and other unknown weapon forms fall back to other. Legacy `firearm` and `explosive` values remain accepted by the schema for older message producers. |
 | `ammoName` | string | Display name of the equipped weapon's actual ammo form; empty when no ammo form is attached. |
 | `clip`, `clipMax` | integer | Rounds loaded, magazine size. |
 | `reserve` | integer | Matching ammo in inventory, not counting the loaded rounds. |
