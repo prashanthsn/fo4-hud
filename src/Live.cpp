@@ -59,7 +59,10 @@ bool IsGun(const RE::TESObjectWEAP& weapon) { return TypeOf(weapon) == RE::WEAPO
 std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) {
     if (!weapon) return "none";
     if (IsThrown(*weapon)) return TypeOf(*weapon) == RE::WEAPON_TYPE::kMine ? "mine" : "grenade";
-    const auto has = [&](std::string_view part) { return Contains(name, part); };
+    std::string lowerName(name);
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    const auto has = [&](std::string_view part) { return lowerName.find(part) != std::string::npos; };
     if (has("crossbow")) return "crossbow";
     if (has("longbow") || has("fallout bow") || has(" bow")) return "bow";
     if (has("famas")) return "bullpup";
