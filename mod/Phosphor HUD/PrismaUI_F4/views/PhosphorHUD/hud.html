@@ -632,6 +632,11 @@ html.ingame,html.ingame body{background:transparent!important}
 .weapon-info .wmeta{letter-spacing:.13em}
 @media(max-width:700px){.weapon-art{width:150px;height:66px}}
 
+/* In-game webview: transparent full-screen overlay, not the old framed preview canvas. */
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:transparent!important}
+body{background:transparent!important}
+.page{display:block;width:100vw;height:100vh;max-width:none;margin:0;padding:0;gap:0;background:transparent}
+.viewport{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;overflow:hidden;border:0;border-radius:0;background:transparent}
 </style>
 </head><body>
 
