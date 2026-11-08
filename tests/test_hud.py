@@ -691,6 +691,19 @@ class HudTests(unittest.TestCase):
         self.page.clock.run_for(500)
         self.assertEqual(self.location_opacity(), "1", "Returning from an unnamed location counts as arrival")
 
+    def test_weapon_category_and_ammo_name_render_in_existing_counter(self):
+        self.send({"snapshot": True, "weapon": "G36C", "weaponClass": "firearm",
+                   "ammoName": "5.56mm Round", "clip": 30, "clipMax": 30, "reserve": 974})
+        self.assertEqual(self.page.locator("#wName").text_content(), "G36C")
+        self.assertEqual(self.page.locator("#wType").text_content(), "FIREARM")
+        self.assertEqual(self.page.locator("#ammoName").text_content(), "5.56mm Round")
+        self.assertIn("<svg", self.page.locator("#wGlyph").inner_html())
+        self.send({"weaponClass": "explosive", "ammoName": "Frag Grenade"})
+        self.assertEqual(self.page.locator("#wType").text_content(), "EXPLOSIVE")
+        self.assertEqual(self.page.locator("#ammoName").text_content(), "Frag Grenade")
+        self.send({"weaponClass": "mine", "ammoName": "Bottlecap Mine"})
+        self.assertEqual(self.page.locator("#wType").text_content(), "MINE")
+
     def test_weapon_legendary_line_follows_mcm_toggle(self):
         wleg = self.page.locator("#wLeg")
         self.send({"snapshot": True, "weapon": "Combat Shotgun", "clip": 3, "clipMax": 8, "reserve": 20,
