@@ -16,13 +16,46 @@ jobs:
       - name: Build
         shell: pwsh
         run: .\tools\build.ps1 -CommonLib "$env:RUNNER_TEMP\CommonLibF4-NG"
+      - name: Assemble MO2 install archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packageRoot = Join-Path $env:RUNNER_TEMP 'PhosphorHUD-Part1'
+          $pluginDir = Join-Path $packageRoot 'F4SE/Plugins'
+          $viewDir = Join-Path $packageRoot 'PrismaUI_F4/views/PhosphorHUD'
+          New-Item -ItemType Directory -Force -Path $pluginDir, $viewDir | Out-Null
+
+          $dll = 'build/release/PhosphorHUD.dll'
+          $ini = 'mod/Phosphor HUD/F4SE/Plugins/PhosphorHUD.ini'
+          $html = 'mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/hud.html'
+          $assets = 'mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/assets'
+          $handoff = 'docs/WEAPON_ARTWORK_PART1_HANDOFF.md'
+          foreach ($required in @($dll, $ini, $html, $handoff)) {
+            if (-not (Test-Path $required -PathType Leaf)) { throw "Required package file missing: $required" }
+          }
+          if (-not (Test-Path "$assets/weapons" -PathType Container)) { throw "Weapon SVG directory missing: $assets/weapons" }
+
+          Copy-Item $dll (Join-Path $pluginDir 'PhosphorHUD.dll')
+          Copy-Item $ini (Join-Path $pluginDir 'PhosphorHUD.ini')
+          Copy-Item $html (Join-Path $viewDir 'hud.html')
+          Copy-Item $assets $viewDir -Recurse
+          Copy-Item $handoff (Join-Path $packageRoot 'WEAPON_ARTWORK_PART1_HANDOFF.md')
+
+          $svgCount = (Get-ChildItem (Join-Path $viewDir 'assets/weapons') -Filter '*.svg' -File).Count
+          if ($svgCount -lt 100) { throw "Expected at least 100 weapon SVGs, found $svgCount" }
+          New-Item -ItemType Directory -Force -Path 'dist' | Out-Null
+          $archive = 'dist/PhosphorHUD-Part1-MO2.zip'
+          Compress-Archive -Path (Join-Path $packageRoot '*') -DestinationPath $archive -Force
+          Write-Host "MO2 archive created: $archive (weapon SVGs: $svgCount)"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: PhosphorHUD-Part1-MO2
+          path: dist/PhosphorHUD-Part1-MO2.zip
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: PhosphorHUD-build
+          name: PhosphorHUD-build-diagnostics
           path: |
-            build/release/PhosphorHUD.dll
-            mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/hud.html
-            mod/Phosphor HUD/PrismaUI_F4/views/PhosphorHUD/assets/weapons/**
-            docs/WEAPON_ARTWORK_PART1_HANDOFF.md
             .build/xmake.log
