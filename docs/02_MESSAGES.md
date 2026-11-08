@@ -153,6 +153,8 @@ Stage names (index 0–5):
 | Field | Type | Notes |
 |---|---|---|
 | `weapon` | string | Equipped weapon's display name. |
+| `weaponClass` | `none` / `firearm` / `explosive` / `mine` / `other` | Broad icon category derived from the engine weapon type; does not guess rifle/pistol/energy subclasses. |
+| `ammoName` | string | Display name of the equipped weapon's actual ammo form; empty when no ammo form is attached. |
 | `clip`, `clipMax` | integer | Rounds loaded, magazine size. |
 | `reserve` | integer | Matching ammo in inventory, not counting the loaded rounds. |
 | `weaponLegendary` | string[] | Legendary effect names on the equipped weapon (LEO allows up to 5). `[]` hides the line, and so does `settings.showWeaponLegendary: false` (MCM "Legendary effects on weapon", default on); the effects are kept and reappear when it is turned back on. |
