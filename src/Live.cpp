@@ -53,15 +53,28 @@ bool IsThrown(const RE::TESObjectWEAP& weapon) {
 }
 bool IsGun(const RE::TESObjectWEAP& weapon) { return TypeOf(weapon) == RE::WEAPON_TYPE::kGun; }
 
-// Broad categories only: the engine weapon type reliably distinguishes these families.
-std::string WeaponClass(const RE::TESObjectWEAP* weapon) {
+// Weapon silhouette profiles. Names are deliberately matched case-insensitively because
+// mod-added weapons often retain their recognizable model name in the equipped display name.
+// Unknown guns fall back to the rifle silhouette; non-guns use their engine weapon family.
+std::string WeaponClass(const RE::TESObjectWEAP* weapon, std::string_view name) {
     if (!weapon) return "none";
-    switch (TypeOf(*weapon)) {
-    case RE::WEAPON_TYPE::kGun: return "firearm";
-    case RE::WEAPON_TYPE::kGrenade: return "explosive";
-    case RE::WEAPON_TYPE::kMine: return "mine";
-    default: return "other";
-    }
+    if (IsThrown(*weapon)) return TypeOf(*weapon) == RE::WEAPON_TYPE::kMine ? "mine" : "grenade";
+    const auto has = [&](std::string_view part) { return Contains(name, part); };
+    if (has("crossbow")) return "crossbow";
+    if (has("longbow") || has("fallout bow") || has(" bow")) return "bow";
+    if (has("famas")) return "bullpup";
+    if (has("dragunov") || has("svd") || has("sniper") || has("marksman")) return "sniper";
+    if (has("origin 12") || has("saiga") || has("shotgun") || has("break-action")) return "shotgun";
+    if (has("minigun") || has("mg69") || has("lmg") || has("machine gun")) return "heavy";
+    if (has("launcher") || has("fat man") || has("missile") || has("flamer")) return "launcher";
+    if (has("cryolance") || has("archimedes") || has("laser") || has("plasma") || has("energy")) return "energy";
+    if (has("desert eagle") || has("m1911") || has("pistol") || has("p220") || has("p226") ||
+        has("p320") || has("p322") || has("p365") || has("stechkin") || has("magnum") || has("revolver"))
+        return "pistol";
+    if (has("bizon") || has("famas smg") || has("submachine") || has(" smg") || has("mp-"))
+        return "smg";
+    if (TypeOf(*weapon) == RE::WEAPON_TYPE::kGun) return "rifle";
+    return "other";
 }
 
 struct Equipped {
@@ -318,7 +331,7 @@ Json ReadSlow(Raw& raw) {
     PH_TR("ReadInventory");
     const auto inv = ReadInventory(*player, eq);
     out["weapon"] = CleanName(!inv.weaponName.empty() ? inv.weaponName : Name(eq.weapon), true);
-    out["weaponClass"] = WeaponClass(eq.weapon);
+    out["weaponClass"] = WeaponClass(eq.weapon, out["weapon"].get<std::string>());
     out["ammoName"] = eq.ammo ? CleanName(Name(eq.ammo), true) : "";
     out["weaponLegendary"] = inv.legendary;
     out["clip"] = eq.clip;
