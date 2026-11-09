@@ -428,7 +428,7 @@ bool Queue(std::function<void()> task) {
 void Send(const Json& message) {
     if (!domReady || !ViewValid()) return;
     const auto serialized = message.dump(-1, ' ', false, Json::error_handler_t::replace);
-    api->InteropCall(g_view, "hud.update", serialized.c_str());
+    api->InteropCall(g_view, "hudUpdate", serialized.c_str());
     // Messages go to PhosphorHUD/messages.jsonl only, so the main log keeps a whole session of diagnostics.
     if (messageLog) messageLog->debug("{}", serialized);
 }
@@ -514,6 +514,9 @@ void ConsoleMessage(PrismaView source, PRISMA_UI_API::ConsoleMessageLevel level,
     } catch (...) {}
 }
 
+void JsBridgeProbe(const char* result) noexcept {
+    spdlog::info("PrismaUI JS bridge probe: {}", result ? result : "<no result>");
+}
 void DomReady(PrismaView readyView) noexcept {
     try {
         Queue([readyView] {
@@ -523,6 +526,10 @@ void DomReady(PrismaView readyView) noexcept {
             api->SetViewRole(g_view, PRISMA_UI_API::ViewRole::kWidget);
             api->RegisterConsoleCallback(g_view, ConsoleMessage);
             api->Hide(g_view);
+            // Verify the global callback exists before live updates begin.
+            api->Invoke(g_view,
+                "JSON.stringify({ready:document.readyState,hud:typeof window.hud,hudUpdate:typeof window.hudUpdate})",
+                JsBridgeProbe);
             SendSettings();
             spdlog::info("HUD DOM ready; Ctrl+F10 replays after loading a save");
         });
