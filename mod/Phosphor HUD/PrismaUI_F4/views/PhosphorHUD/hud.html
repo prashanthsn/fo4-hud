@@ -1756,7 +1756,7 @@ body{background:transparent!important}
      missing files fail quietly and the next candidate loads, ending at the type icon. */
   function portraitCandidates(c){
     if (c.portrait) return [c.portrait];
-    if (!LOCAL) return [];
+    if (typeof LOCAL !== "undefined" && !LOCAL) return [];
     var words = String(c.name).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), list = [], seen = {};
     for (var i = 0; i < words.length; i++) if (PORTRAITS[words[i]]) { list.push(PORTRAITS[words[i]]); break; }
     list.push(words.join("-"));
